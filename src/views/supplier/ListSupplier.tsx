@@ -2,6 +2,7 @@
 
 // React Imports
 import { useEffect, useMemo, useState } from 'react'
+
 import { useRouter } from 'next/navigation'
 
 // MUI Imports
@@ -12,16 +13,13 @@ import { Button, Checkbox, Grid, IconButton, ListItemIcon, Menu, MenuItem, Typog
 
 // Third-party Imports
 import classnames from 'classnames'
-import {
-  Cell,
-  CellContext,
-  Column,
+
+import type {
   ColumnDef,
   ColumnFiltersState,
-  FilterFn,
-  HeaderGroup,
-  Row,
-  Table,
+  FilterFn} from '@tanstack/react-table';
+
+import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
@@ -33,7 +31,11 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table'
+
 import { rankItem } from '@tanstack/match-sorter-utils'
+
+// Utils
+import { toast } from 'react-toastify'
 
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
@@ -44,10 +46,6 @@ import ChevronRight from '@menu/svg/ChevronRight'
 
 // Style Imports
 import styles from '@core/styles/table.module.css'
-
-// Utils
-import Image from 'next/image'
-import { toast } from 'react-toastify'
 
 // ---------- Types ----------
 
@@ -77,10 +75,12 @@ const fuzzyFilter: FilterFn<Supplier> = (row, columnId, value) => {
   const search = String(value ?? '')
     .toLowerCase()
     .trim()
+
   const cellValue = String(row.getValue(columnId) ?? '').toLowerCase()
 
   const itemRank = rankItem(cellValue, search)
-  return itemRank.passed
+
+return itemRank.passed
 }
 
 // Debounced input for global search
@@ -109,11 +109,6 @@ const DebouncedInput = ({
   }, [value])
 
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
-}
-
-const MaxLengthCell = ({ value, maxLength }: { value: string; maxLength: number }) => {
-  if (!value) return <span>-</span>
-  return <span title={value}>{value.length > maxLength ? `${value.substring(0, maxLength)}...` : value}</span>
 }
 
 const ListSupplier: React.FC<ListSupplierProps> = ({ data }) => {
@@ -260,10 +255,6 @@ const ListSupplier: React.FC<ListSupplierProps> = ({ data }) => {
 
   const selectedRows = table.getSelectedRowModel().rows.map(r => r.original)
 
-  const handleAddSupplier = () => {
-    router.push('/suppliers/add-supplier')
-  }
-
   const handleExportSuppliers = (suppliers: Supplier[]) => {
     try {
       if (!suppliers.length) return toast.error('No supplier data available for export')
@@ -313,7 +304,7 @@ const ListSupplier: React.FC<ListSupplierProps> = ({ data }) => {
                 </Button>
 
                 <Button
-                  onClick={handleAddSupplier}
+                  onClick={() => router.push('/supplier/add-supplier')}
                   variant='contained'
                   startIcon={<i className='tabler-plus' />}
                   color='primary'
