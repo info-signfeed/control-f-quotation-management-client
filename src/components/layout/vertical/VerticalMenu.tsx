@@ -66,27 +66,30 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
     >
       {/* Incase you also want to scroll NavHeader to scroll with Vertical Menu, remove NavHeader from above and paste it below this comment */}
       {/* Vertical Menu */}
-    <Menu
-  popoutMenuOffset={{ mainAxis: 23 }}
-  menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
-  renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
-  renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
-  menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
->
-    <MenuItem href='/dashboard' icon={<i className='tabler-dashboard' />}>
+      <Menu
+        popoutMenuOffset={{ mainAxis: 23 }}
+        menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
+        renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
+        renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
+        menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
+      >
+        <MenuItem href='/dashboard' icon={<i className='tabler-dashboard' />}>
           Dashboard
         </MenuItem>
 
-  <SubMenu
-    label="Master"
-    icon={<i className="tabler-info-circle" />}
-  >
-    <MenuItem href="/brand/list-brand">Brand</MenuItem>
-    <MenuItem href="/supplier/list-supplier">Supplier</MenuItem>
-    <MenuItem href="/customer/list-customer">Customer</MenuItem>
-  </SubMenu>
-</Menu>
-</ScrollWrapper>
+        <SubMenu label='Master' icon={<i className='tabler-info-circle' />}>
+          <MenuItem href='/brand/list-brand'>Brand</MenuItem>
+          <MenuItem href='/supplier/list-supplier'>Supplier</MenuItem>
+          <MenuItem href='/customer/list-customer'>Customer</MenuItem>
+          <MenuItem href='/listcategory' icon={<i className='tabler-category' />}>
+            Category
+          </MenuItem>
+          <MenuItem href='/approvalmatrix' icon={<i className='tabler-brand-matrix' />}>
+            Approval Matrix
+          </MenuItem>
+        </SubMenu>
+      </Menu>
+    </ScrollWrapper>
   )
 }
 

@@ -1,11 +1,12 @@
 'use client'
-import { Grid, Box, Card, Typography, CardHeader, Divider, CardContent, MenuItem } from '@mui/material'
+import { Grid, Box, Card, Typography, CardHeader, Divider, CardContent, MenuItem, List } from '@mui/material'
 
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
 
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import CustomTextField from '@/@core/components/mui/TextField'
 import { useState } from 'react'
+import ListRecentQuotation from '@/views/dashboard/ListRecentQuotation'
 
 export default function DashboardPage() {
   const [duration, setDuration] = useState<string>('')
@@ -326,6 +327,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </Grid>
+
           <Grid item xs={12} md={8} lg={4}>
             <Card variant='outlined'>
               <CardHeader
@@ -373,6 +375,10 @@ export default function DashboardPage() {
             </Card>
           </Grid>
         </Grid>
+      </Grid>
+      {/* table */}
+      <Grid item xs={12}>
+        <ListRecentQuotation data={[]} />
       </Grid>
     </Grid>
   )
