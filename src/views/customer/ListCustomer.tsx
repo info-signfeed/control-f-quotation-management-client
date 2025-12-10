@@ -2,6 +2,7 @@
 
 // React Imports
 import { useEffect, useMemo, useState } from 'react'
+
 import { useRouter } from 'next/navigation'
 
 // MUI Imports
@@ -12,16 +13,13 @@ import { Button, Checkbox, Grid, IconButton, ListItemIcon, Menu, MenuItem, Typog
 
 // Third-party Imports
 import classnames from 'classnames'
-import {
-  Cell,
-  CellContext,
-  Column,
+
+import type {
   ColumnDef,
   ColumnFiltersState,
-  FilterFn,
-  HeaderGroup,
-  Row,
-  Table,
+  FilterFn} from '@tanstack/react-table';
+
+import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
@@ -33,7 +31,11 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table'
+
 import { rankItem } from '@tanstack/match-sorter-utils'
+
+// Utils
+import { toast } from 'react-toastify'
 
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
@@ -45,8 +47,7 @@ import ChevronRight from '@menu/svg/ChevronRight'
 // Style Imports
 import styles from '@core/styles/table.module.css'
 
-// Utils
-import { toast } from 'react-toastify'
+
 
 // ---------- Types ----------
 
@@ -74,9 +75,11 @@ const fuzzyFilter: FilterFn<Customer> = (row, columnId, value) => {
   const search = String(value ?? '')
     .toLowerCase()
     .trim()
+
   const cellValue = String(row.getValue(columnId) ?? '').toLowerCase()
   const itemRank = rankItem(cellValue, search)
-  return itemRank.passed
+
+return itemRank.passed
 }
 
 // Debounced input
@@ -96,15 +99,11 @@ const DebouncedInput = ({
 
   useEffect(() => {
     const timeout = setTimeout(() => onChange(value), debounce)
-    return () => clearTimeout(timeout)
+
+return () => clearTimeout(timeout)
   }, [value])
 
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
-}
-
-const MaxLengthCell = ({ value, maxLength }: { value: string; maxLength: number }) => {
-  if (!value) return <span>-</span>
-  return <span title={value}>{value.length > maxLength ? `${value.substring(0, maxLength)}...` : value}</span>
 }
 
 const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
@@ -239,10 +238,6 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
 
   const selectedRows = table.getSelectedRowModel().rows.map(row => row.original)
 
-  const handleAddCustomer = () => {
-    router.push('/customers/add-customer')
-  }
-
   const handleExportCustomers = (customers: Customer[]) => {
     if (!customers.length) return toast.error('No customer data available')
     console.log('Export customers', customers)
@@ -288,7 +283,7 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
                 </Button>
 
                 <Button
-                  onClick={handleAddCustomer}
+                  onClick={() => router.push('/customer/add-customer')}
                   variant='contained'
                   startIcon={<i className='tabler-plus' />}
                   color='primary'

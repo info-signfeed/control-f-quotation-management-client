@@ -2,7 +2,10 @@
 
 // React Imports
 import { useEffect, useMemo, useState } from 'react'
+
 import { useRouter } from 'next/navigation'
+
+import { toast } from 'react-toastify'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -12,7 +15,8 @@ import { Button, Checkbox, Grid, IconButton, ListItemIcon, Menu, MenuItem, Typog
 
 // Third-party Imports
 import classnames from 'classnames'
-import {
+
+import type {
   Cell,
   CellContext,
   Column,
@@ -21,7 +25,8 @@ import {
   FilterFn,
   HeaderGroup,
   Row,
-  Table,
+  Table} from '@tanstack/react-table';
+import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
@@ -33,6 +38,7 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table'
+
 import { rankItem } from '@tanstack/match-sorter-utils'
 
 // Component Imports
@@ -44,10 +50,6 @@ import ChevronRight from '@menu/svg/ChevronRight'
 
 // Style Imports
 import styles from '@core/styles/table.module.css'
-
-// Utils
-import Image from 'next/image'
-import { toast } from 'react-toastify'
 
 // ---------- Types ----------
 
@@ -75,6 +77,7 @@ const fuzzyFilter: FilterFn<Brand> = (row, columnId, value) => {
   const search = String(value ?? '')
     .toLowerCase()
     .trim()
+
   const cellValue = String(row.getValue(columnId) ?? '').toLowerCase()
 
   const itemRank = rankItem(cellValue, search)
@@ -145,12 +148,6 @@ const Filter = ({ column, table }: { column: Column<any, unknown>; table: Table<
       placeholder='Search...'
     />
   )
-}
-
-const MaxLengthCell = ({ value, maxLength }: { value: string; maxLength: number }) => {
-  if (!value) return <span>-</span>
-
-  return <span title={value}>{value.length > maxLength ? `${value.substring(0, maxLength)}...` : value}</span>
 }
 
 const ListBrand: React.FC<ListBrandProps> = ({ data }) => {
@@ -292,15 +289,13 @@ const ListBrand: React.FC<ListBrandProps> = ({ data }) => {
 
   const selectedRows = table.getSelectedRowModel().rows.map(row => row.original)
 
-  const handleAddBrand = () => {
-    router.push('/brands/add-brand')
-  }
 
   const handleExportBrands = (brands: Brand[]) => {
     try {
       if (!brands || brands.length === 0) {
         toast.error('No data available for export')
-        return
+
+return
       }
 
       console.log('Export brands', brands)
@@ -315,6 +310,7 @@ const ListBrand: React.FC<ListBrandProps> = ({ data }) => {
     toast.info('Import Brand clicked')
   }
 
+  // @ts-ignore
   return (
     <>
       <div className='flex flex-col gap-4'>
