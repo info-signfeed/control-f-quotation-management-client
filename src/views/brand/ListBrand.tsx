@@ -1,0 +1,470 @@
+'use client'
+
+// React Imports
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+// MUI Imports
+import Card from '@mui/material/Card'
+import TablePagination from '@mui/material/TablePagination'
+import type { TextFieldProps } from '@mui/material/TextField'
+import { Button, Checkbox, Grid, IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material'
+
+// Third-party Imports
+import classnames from 'classnames'
+import {
+  Cell,
+  CellContext,
+  Column,
+  ColumnDef,
+  ColumnFiltersState,
+  FilterFn,
+  HeaderGroup,
+  Row,
+  Table,
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getFacetedMinMaxValues,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable
+} from '@tanstack/react-table'
+import { rankItem } from '@tanstack/match-sorter-utils'
+
+// Component Imports
+import CustomTextField from '@core/components/mui/TextField'
+import TablePaginationComponent from '../../components/TablePaginationComponent'
+
+// Icon Imports
+import ChevronRight from '@menu/svg/ChevronRight'
+
+// Style Imports
+import styles from '@core/styles/table.module.css'
+
+// Utils
+import Image from 'next/image'
+import { toast } from 'react-toastify'
+
+// ---------- Types ----------
+
+export interface Brand {
+  id: string | number
+  brandName: string
+  manufacturer: string
+  origin: string
+  focusCategory: string
+  products: string
+  headOffice: string
+  segment: string
+  isHidden?: boolean
+}
+
+interface ListBrandProps {
+  data: Brand[]
+}
+
+// ---------- Helpers ----------
+
+const columnHelper = createColumnHelper<Brand>()
+
+const fuzzyFilter: FilterFn<Brand> = (row, columnId, value) => {
+  const search = String(value ?? '')
+    .toLowerCase()
+    .trim()
+  const cellValue = String(row.getValue(columnId) ?? '').toLowerCase()
+
+  const itemRank = rankItem(cellValue, search)
+
+  return itemRank.passed
+}
+
+// Debounced input for global search
+const DebouncedInput = ({
+  value: initialValue,
+  onChange,
+  debounce = 500,
+  ...props
+}: {
+  value: string | number
+  onChange: (value: string | number) => void
+  debounce?: number
+} & TextFieldProps) => {
+  const [value, setValue] = useState(initialValue)
+
+  useEffect(() => {
+    setValue(initialValue)
+  }, [initialValue])
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      onChange(value)
+    }, debounce)
+
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+
+  return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
+}
+
+const Filter = ({ column, table }: { column: Column<any, unknown>; table: Table<any> }) => {
+  const firstValue = table.getPreFilteredRowModel().flatRows[0]?.getValue(column.id)
+  const columnFilterValue = column.getFilterValue()
+
+  if (column.id === 'id') return null
+
+  return typeof firstValue === 'number' ? (
+    <div className='flex gap-x-2'>
+      <CustomTextField
+        fullWidth
+        type='number'
+        sx={{ minInlineSize: 100, maxInlineSize: 125 }}
+        value={(columnFilterValue as [number, number])?.[0] ?? ''}
+        onChange={e => column.setFilterValue((old: [number, number]) => [e.target.value, old?.[1]])}
+        placeholder={`Min ${column.getFacetedMinMaxValues()?.[0] ? `(${column.getFacetedMinMaxValues()?.[0]})` : ''}`}
+      />
+      <CustomTextField
+        fullWidth
+        type='number'
+        sx={{ minInlineSize: 100, maxInlineSize: 125 }}
+        value={(columnFilterValue as [number, number])?.[1] ?? ''}
+        onChange={e => column.setFilterValue((old: [number, number]) => [old?.[0], e.target.value])}
+        placeholder={`Max ${column.getFacetedMinMaxValues()?.[1] ? `(${column.getFacetedMinMaxValues()?.[1]})` : ''}`}
+      />
+    </div>
+  ) : (
+    <CustomTextField
+      fullWidth
+      sx={{ minInlineSize: 100 }}
+      value={(columnFilterValue ?? '') as string}
+      onChange={e => column.setFilterValue(e.target.value)}
+      placeholder='Search...'
+    />
+  )
+}
+
+const MaxLengthCell = ({ value, maxLength }: { value: string; maxLength: number }) => {
+  if (!value) return <span>-</span>
+
+  return <span title={value}>{value.length > maxLength ? `${value.substring(0, maxLength)}...` : value}</span>
+}
+
+const ListBrand: React.FC<ListBrandProps> = ({ data }) => {
+  const router = useRouter()
+
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [globalFilter, setGlobalFilter] = useState<string>('')
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [menuRowData, setMenuRowData] = useState<Brand | null>(null)
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, brand: Brand) => {
+    setAnchorEl(event.currentTarget)
+    setMenuRowData(brand)
+  }
+
+  const handleMenuClose = () => {
+    setAnchorEl(null)
+    setMenuRowData(null)
+  }
+
+  const handleEdit = (brand: Brand) => {
+    router.push(`/brands/update-brand/${brand.id}`)
+    handleMenuClose()
+  }
+
+  const handleRemove = (brand: Brand) => {
+    console.log('Remove brand', brand.id)
+    toast.info(`Remove Brand: ${brand.brandName}`)
+    handleMenuClose()
+  }
+
+  const handleToggleHide = (brand: Brand) => {
+    console.log('Toggle hide brand', brand.id)
+    toast.info(`${brand.isHidden ? 'Unhide' : 'Hide'} Brand: ${brand.brandName}`)
+    handleMenuClose()
+  }
+
+  const columns = useMemo<ColumnDef<Brand, any>[]>(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }: { table: Table<Brand> }) => (
+          <Checkbox
+            checked={table.getIsAllRowsSelected()}
+            indeterminate={table.getIsSomeRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+          />
+        ),
+        cell: ({ row }: { row: Row<Brand> }) => (
+          <Checkbox checked={row.getIsSelected()} onChange={row.getToggleSelectedHandler()} />
+        ),
+        enableSorting: false,
+        enableColumnFilter: false
+      },
+
+      columnHelper.accessor('brandName', {
+        header: 'Brand Name',
+        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+
+      columnHelper.accessor('manufacturer', {
+        header: 'Manufacturer',
+        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+
+      columnHelper.accessor('origin', {
+        header: 'Origin',
+        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+
+      columnHelper.accessor('focusCategory', {
+        header: 'Focus Category',
+        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+
+      columnHelper.accessor('products', {
+        header: 'Products',
+        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+
+      columnHelper.accessor('headOffice', {
+        header: 'Head Office',
+        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+
+      columnHelper.accessor('segment', {
+        header: 'Segment',
+        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+
+      columnHelper.accessor('id', {
+        header: 'Action',
+        enableSorting: false,
+        enableColumnFilter: false,
+        cell: ({ row }: { row: Row<Brand> }) => (
+          <IconButton
+            size='small'
+            onClick={e => handleMenuOpen(e, row.original)}
+            aria-label='Actions'
+            sx={{ color: '#232F6F' }}
+          >
+            <i className='tabler-dots-vertical' />
+          </IconButton>
+        )
+      })
+    ],
+    []
+  )
+
+  const table = useReactTable({
+    data,
+    columns,
+    filterFns: {
+      fuzzy: fuzzyFilter
+    },
+    state: {
+      columnFilters,
+      globalFilter
+    },
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: fuzzyFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedMinMaxValues: getFacetedMinMaxValues()
+  })
+
+  const selectedRows = table.getSelectedRowModel().rows.map(row => row.original)
+
+  const handleAddBrand = () => {
+    router.push('/brands/add-brand')
+  }
+
+  const handleExportBrands = (brands: Brand[]) => {
+    try {
+      if (!brands || brands.length === 0) {
+        toast.error('No data available for export')
+        return
+      }
+
+      console.log('Export brands', brands)
+      toast.success('Brand report exported')
+    } catch (error) {
+      console.error('Error exporting brands:', error)
+      toast.error('Failed to export report')
+    }
+  }
+
+  const handleImportBrands = () => {
+    toast.info('Import Brand clicked')
+  }
+
+  return (
+    <>
+      <div className='flex flex-col gap-4'>
+        <Card variant='outlined' sx={{ p: 4 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant='h5' mb={2}>
+                Brand Master ({data.length})
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} container alignItems='center' justifyContent='space-between'>
+              <Grid item xs={12} sm={6}>
+                <DebouncedInput
+                  value={globalFilter ?? ''}
+                  onChange={value => setGlobalFilter(String(value))}
+                  placeholder='Search Brands...'
+                  className='w-full'
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6} display='flex' justifyContent='flex-end' gap={2}>
+                <Button
+                  variant='outlined'
+                  startIcon={<i className='tabler-download' style={{ transform: 'rotate(180deg)' }} />}
+                  onClick={() => handleExportBrands(selectedRows.length ? selectedRows : data)}
+                >
+                  Export
+                </Button>
+
+                <Button variant='outlined' startIcon={<i className='tabler-upload' />} onClick={handleImportBrands}>
+                  Import
+                </Button>
+
+                <Button
+                  onClick={() => router.push('/brand/add-brand')}
+                  variant='contained'
+                  startIcon={<i className='tabler-plus' />}
+                  color='primary'
+                >
+                  Add Brand
+                </Button>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Card>
+
+        {/* Table Card */}
+        <Card variant='outlined'>
+          <div className='overflow-x-auto'>
+            <table className={styles.table}>
+              <thead>
+                {table.getHeaderGroups().map((headerGroup: HeaderGroup<Brand>) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map(header => (
+                      <th key={header.id}>
+                        {header.isPlaceholder ? null : (
+                          <>
+                            <div
+                              className={classnames({
+                                'flex items-center': header.column.getIsSorted(),
+                                'cursor-pointer select-none': header.column.getCanSort()
+                              })}
+                              onClick={header.column.getToggleSortingHandler()}
+                            >
+                              {flexRender(header.column.columnDef.header, header.getContext())}
+                              {{
+                                asc: <ChevronRight fontSize='1.25rem' className='-rotate-90' />,
+                                desc: <ChevronRight fontSize='1.25rem' className='rotate-90' />
+                              }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
+                            </div>
+                            {header.column.getCanFilter() && <Filter column={header.column} table={table} />}
+                          </>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+
+              {table.getFilteredRowModel().rows.length === 0 ? (
+                <tbody>
+                  <tr>
+                    <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+                      No data available
+                    </td>
+                  </tr>
+                </tbody>
+              ) : (
+                <tbody>
+                  {table.getRowModel().rows.map((row: Row<Brand>) => (
+                    <tr key={row.id}>
+                      {row.getVisibleCells().map((cell: Cell<Brand, unknown>) => (
+                        <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              )}
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <TablePagination
+            component={() => <TablePaginationComponent table={table} />}
+            count={table.getFilteredRowModel().rows.length}
+            rowsPerPage={table.getState().pagination.pageSize}
+            page={table.getState().pagination.pageIndex}
+            onPageChange={(_, page) => {
+              table.setPageIndex(page)
+            }}
+          />
+        </Card>
+      </div>
+
+      {/* Row Action Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right'
+        }}
+      >
+        <MenuItem onClick={() => menuRowData && handleEdit(menuRowData)}>
+          <ListItemIcon>
+            <i className='tabler-edit' />
+          </ListItemIcon>
+          Edit
+        </MenuItem>
+        <MenuItem onClick={() => menuRowData && handleRemove(menuRowData)}>
+          <ListItemIcon>
+            <i className='tabler-trash' />
+          </ListItemIcon>
+          Remove
+        </MenuItem>
+        <MenuItem onClick={() => menuRowData && handleToggleHide(menuRowData)}>
+          <ListItemIcon>
+            <i className='tabler-eye-off' />
+          </ListItemIcon>
+          {menuRowData?.isHidden ? 'Unhide' : 'Hide'}
+        </MenuItem>
+      </Menu>
+    </>
+  )
+}
+
+export default ListBrand

@@ -10,7 +10,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar'
 import type { VerticalMenuContextProps } from '@menu/components/vertical-menu/Menu'
 
 // Component Imports
-import { Menu, MenuItem } from '@menu/vertical-menu'
+import { Menu, MenuItem, SubMenu } from '@menu/vertical-menu'
 
 // Hook Imports
 import { useSettings } from '@core/hooks/useSettings'
@@ -66,30 +66,27 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
     >
       {/* Incase you also want to scroll NavHeader to scroll with Vertical Menu, remove NavHeader from above and paste it below this comment */}
       {/* Vertical Menu */}
-      <Menu
-        popoutMenuOffset={{ mainAxis: 23 }}
-        menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
-        renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
-        renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
-        menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
-      >
-        <MenuItem href='/dashboard' icon={<i className='tabler-dashboard' />}>
+    <Menu
+  popoutMenuOffset={{ mainAxis: 23 }}
+  menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
+  renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
+  renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
+  menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
+>
+    <MenuItem href='/dashboard' icon={<i className='tabler-dashboard' />}>
           Dashboard
         </MenuItem>
-        <MenuItem href='/about' icon={<i className='tabler-info-circle' />}>
-          About
-        </MenuItem>
-      </Menu>
-      {/* <Menu
-        popoutMenuOffset={{ mainAxis: 23 }}
-        menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
-        renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
-        renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
-        menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
-      >
-        <GenerateVerticalMenu menuData={menuData(dictionary, params)} />
-      </Menu> */}
-    </ScrollWrapper>
+
+  <SubMenu
+    label="Master"
+    icon={<i className="tabler-info-circle" />}
+  >
+    <MenuItem href="/brand/list-brand">Brand</MenuItem>
+    <MenuItem href="/supplier/list-supplier">Supplier</MenuItem>
+    <MenuItem href="/customer/list-customer">Customer</MenuItem>
+  </SubMenu>
+</Menu>
+</ScrollWrapper>
   )
 }
 
