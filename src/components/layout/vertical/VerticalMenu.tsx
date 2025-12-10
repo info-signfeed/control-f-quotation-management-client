@@ -73,9 +73,9 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
   renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
   menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
 >
-  <MenuItem href="/home" icon={<i className="tabler-smart-home" />}>
-    Home
-  </MenuItem>
+    <MenuItem href='/dashboard' icon={<i className='tabler-dashboard' />}>
+          Dashboard
+        </MenuItem>
 
   <SubMenu
     label="Master"
