@@ -35,7 +35,7 @@ const Layout = async ({ children }: ChildrenType) => {
           <VerticalLayout
             navigation={<Navigation mode={mode} systemMode={systemMode} />}
             navbar={<Navbar />}
-            footer={<VerticalFooter />}
+            // footer={<VerticalFooter />}
           >
             {children}
           </VerticalLayout>
@@ -46,11 +46,11 @@ const Layout = async ({ children }: ChildrenType) => {
           </HorizontalLayout>
         }
       />
-      <ScrollToTop className='mui-fixed'>
+      {/* <ScrollToTop className='mui-fixed'>
         <Button variant='contained' className='is-10 bs-10 rounded-full p-0 min-is-0 flex items-center justify-center'>
           <i className='tabler-arrow-up' />
         </Button>
-      </ScrollToTop>
+      </ScrollToTop> */}
     </Providers>
   )
 }

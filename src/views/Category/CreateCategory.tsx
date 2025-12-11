@@ -13,7 +13,6 @@ import {
   TextField,
   Select,
   MenuItem,
-  InputLabel,
   FormControl,
   FormHelperText,
   Chip,
@@ -87,10 +86,12 @@ export default function CreateCategoryPage() {
       // If you use a different API base, change the URL above
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
+
         throw new Error(err.message || 'Failed to create category')
       }
 
       toast.success('Category created successfully!')
+
       // small delay so user sees toast (adjust/remove as desired)
       setTimeout(() => {
         router.push('/categorylist') // change this route to your real category list route
@@ -136,20 +137,40 @@ export default function CreateCategoryPage() {
           <Box component='form' onSubmit={handleSubmit(onSubmit)} noValidate>
             <Grid container spacing={2}>
               {/* Product */}
+              {/* Product */}
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth error={!!errors.product}>
-                  <InputLabel id='product-label'>
-                    Product <span style={{ color: '#d32f2f' }}>*</span>
-                  </InputLabel>
+                  <label className='text-sm text-[#1e2a55] mb-1 block'>
+                    Product <span className='text-red-500'>*</span>
+                  </label>
+
                   <Controller
                     name='product'
                     control={control}
                     rules={{ required: 'Product is required' }}
                     render={({ field }) => (
-                      <Select labelId='product-label' label='Product *' {...field}>
-                        <MenuItem value=''>
-                          <em>Type</em>
-                        </MenuItem>
+                      <Select
+                        displayEmpty
+                        {...field}
+                        sx={{
+                          height: '44px',
+                          borderRadius: '8px',
+                          '& .MuiSelect-select': {
+                            padding: '8px',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }
+                        }}
+                        renderValue={selected => {
+                          if (!selected) {
+                            return <span className='text-gray-400'>Type</span>
+                          }
+
+                          const item = PRODUCTS.find(p => p.id === selected)
+
+                          return item?.label || selected
+                        }}
+                      >
                         {PRODUCTS.map(p => (
                           <MenuItem key={p.id} value={p.id}>
                             {p.label}
@@ -158,47 +179,77 @@ export default function CreateCategoryPage() {
                       </Select>
                     )}
                   />
-                  <FormHelperText>{errors.product ? errors.product.message : ''}</FormHelperText>
+                  <FormHelperText>{errors.product?.message}</FormHelperText>
                 </FormControl>
               </Grid>
 
-              {/* Category (text input) */}
+              {/* Category Name */}
               <Grid item xs={12} md={6}>
-                <Controller
-                  name='categoryName'
-                  control={control}
-                  rules={{ required: 'Category name is required' }}
-                  render={({ field }) => (
-                    <TextField
-                      fullWidth
-                      label={
-                        <>
-                          Category <span style={{ color: '#d32f2f' }}>*</span>
-                        </>
-                      }
-                      {...field}
-                      error={!!errors.categoryName}
-                      helperText={errors.categoryName?.message}
-                    />
-                  )}
-                />
+                <FormControl fullWidth error={!!errors.categoryName}>
+                  <label className='text-sm text-[#1e2a55] mb-1 block'>
+                    Category <span className='text-red-500'>*</span>
+                  </label>
+
+                  <Controller
+                    name='categoryName'
+                    control={control}
+                    rules={{ required: 'Category name is required' }}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        placeholder='Enter category'
+                        error={!!errors.categoryName}
+                        helperText={errors.categoryName?.message}
+                        InputProps={{
+                          sx: {
+                            height: '44px',
+                            borderRadius: '8px',
+                            '& .MuiInputBase-input': {
+                              padding: '8px',
+                              display: 'flex',
+                              alignItems: 'center'
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                </FormControl>
               </Grid>
 
               {/* Sub-category */}
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth error={!!errors.subCategory}>
-                  <InputLabel id='subcat-label'>
-                    Sub-category <span style={{ color: '#d32f2f' }}>*</span>
-                  </InputLabel>
+                  <label className='text-sm text-[#1e2a55] mb-1 block'>
+                    Sub-category <span className='text-red-500'>*</span>
+                  </label>
+
                   <Controller
                     name='subCategory'
                     control={control}
                     rules={{ required: 'Sub-category is required' }}
                     render={({ field }) => (
-                      <Select labelId='subcat-label' label='Sub-category *' {...field}>
-                        <MenuItem value=''>
-                          <em>Sub category</em>
-                        </MenuItem>
+                      <Select
+                        displayEmpty
+                        {...field}
+                        sx={{
+                          height: '44px',
+                          borderRadius: '8px',
+                          '& .MuiSelect-select': {
+                            padding: '8px',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }
+                        }}
+                        renderValue={selected =>
+                          !selected ? (
+                            <span className='text-gray-400'>Sub category</span>
+                          ) : (
+                            SUBCATEGORIES.find(x => x.id === selected)?.label
+                          )
+                        }
+                      >
                         {SUBCATEGORIES.map(s => (
                           <MenuItem key={s.id} value={s.id}>
                             {s.label}
@@ -207,33 +258,52 @@ export default function CreateCategoryPage() {
                       </Select>
                     )}
                   />
-                  <FormHelperText>{errors.subCategory ? errors.subCategory.message : ''}</FormHelperText>
+                  <FormHelperText>{errors.subCategory?.message}</FormHelperText>
                 </FormControl>
               </Grid>
 
-              {/* Sizes multi-select */}
+              {/* Sizes (Multi-select) */}
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth error={!!errors.sizes}>
-                  <InputLabel id='sizes-label'>
-                    Sizes <span style={{ color: '#d32f2f' }}>*</span>
-                  </InputLabel>
+                  <label className='text-sm text-[#1e2a55] mb-1 block'>
+                    Sizes <span className='text-red-500'>*</span>
+                  </label>
+
                   <Controller
                     name='sizes'
                     control={control}
                     rules={{ required: 'Please select at least one size' }}
                     render={({ field }) => (
                       <Select
-                        labelId='sizes-label'
                         multiple
-                        input={<OutlinedInput label='Sizes *' />}
+                        {...field}
+                        input={
+                          <OutlinedInput
+                            sx={{
+                              height: '44px', // 👈 HEIGHT CONTROL HERE
+                              borderRadius: '8px',
+                              padding: '0 8px',
+                              display: 'flex',
+                              alignItems: 'center'
+                            }}
+                          />
+                        }
                         renderValue={selected => (
                           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                            {(selected as string[]).map(value => (
+                            {selected.map(value => (
                               <Chip key={value} label={value} size='small' />
                             ))}
                           </Box>
                         )}
-                        {...field}
+                        sx={{
+                          height: '44px', // 👈 MATCH HEIGHT HERE
+                          '& .MuiSelect-select': {
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '0 8px !important',
+                            height: '44px !important' // 👈 FINAL FIX
+                          }
+                        }}
                       >
                         {SIZES.map(s => (
                           <MenuItem key={s} value={s}>
@@ -243,7 +313,8 @@ export default function CreateCategoryPage() {
                       </Select>
                     )}
                   />
-                  <FormHelperText>{errors.sizes ? errors.sizes.message : ''}</FormHelperText>
+
+                  <FormHelperText>{errors.sizes?.message}</FormHelperText>
                 </FormControl>
               </Grid>
             </Grid>
