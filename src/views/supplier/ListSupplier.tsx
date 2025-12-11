@@ -14,10 +14,7 @@ import { Button, Checkbox, Grid, IconButton, ListItemIcon, Menu, MenuItem, Typog
 // Third-party Imports
 import classnames from 'classnames'
 
-import type {
-  ColumnDef,
-  ColumnFiltersState,
-  FilterFn} from '@tanstack/react-table';
+import type { ColumnDef, ColumnFiltersState, FilterFn } from '@tanstack/react-table'
 
 import {
   createColumnHelper,
@@ -46,6 +43,7 @@ import ChevronRight from '@menu/svg/ChevronRight'
 
 // Style Imports
 import styles from '@core/styles/table.module.css'
+import { COLORS } from '@/utils/colors'
 
 // ---------- Types ----------
 
@@ -80,7 +78,7 @@ const fuzzyFilter: FilterFn<Supplier> = (row, columnId, value) => {
 
   const itemRank = rankItem(cellValue, search)
 
-return itemRank.passed
+  return itemRank.passed
 }
 
 // Debounced input for global search
@@ -307,7 +305,14 @@ const ListSupplier: React.FC<ListSupplierProps> = ({ data }) => {
                   onClick={() => router.push('/supplier/add-supplier')}
                   variant='contained'
                   startIcon={<i className='tabler-plus' />}
-                  color='primary'
+                  sx={{
+                    backgroundColor: COLORS.black,
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: '#000', // keep black on hover
+                      opacity: 0.9
+                    }
+                  }}
                 >
                   Add Supplier
                 </Button>

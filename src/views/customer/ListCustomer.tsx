@@ -14,10 +14,7 @@ import { Button, Checkbox, Grid, IconButton, ListItemIcon, Menu, MenuItem, Typog
 // Third-party Imports
 import classnames from 'classnames'
 
-import type {
-  ColumnDef,
-  ColumnFiltersState,
-  FilterFn} from '@tanstack/react-table';
+import type { ColumnDef, ColumnFiltersState, FilterFn } from '@tanstack/react-table'
 
 import {
   createColumnHelper,
@@ -46,8 +43,7 @@ import ChevronRight from '@menu/svg/ChevronRight'
 
 // Style Imports
 import styles from '@core/styles/table.module.css'
-
-
+import { COLORS } from '@/utils/colors'
 
 // ---------- Types ----------
 
@@ -79,7 +75,7 @@ const fuzzyFilter: FilterFn<Customer> = (row, columnId, value) => {
   const cellValue = String(row.getValue(columnId) ?? '').toLowerCase()
   const itemRank = rankItem(cellValue, search)
 
-return itemRank.passed
+  return itemRank.passed
 }
 
 // Debounced input
@@ -100,7 +96,7 @@ const DebouncedInput = ({
   useEffect(() => {
     const timeout = setTimeout(() => onChange(value), debounce)
 
-return () => clearTimeout(timeout)
+    return () => clearTimeout(timeout)
   }, [value])
 
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
@@ -286,7 +282,14 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
                   onClick={() => router.push('/customer/add-customer')}
                   variant='contained'
                   startIcon={<i className='tabler-plus' />}
-                  color='primary'
+                  sx={{
+                    backgroundColor: COLORS.black,
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: '#000', // keep black on hover
+                      opacity: 0.9
+                    }
+                  }}
                 >
                   Add Customer
                 </Button>

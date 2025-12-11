@@ -1,66 +1,60 @@
-"use client";
+'use client'
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { IconPlus} from '@tabler/icons-react'
+import { IconPlus } from '@tabler/icons-react'
 
-import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { toast } from "react-toastify";
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
+import { toast } from 'react-toastify'
 
-import {
-  Card,
-  CardContent,
-  Grid,
-  Button,
-  IconButton,
-} from "@mui/material";
+import { Card, CardContent, Grid, Button, IconButton } from '@mui/material'
 
-import CustomTextField from "@core/components/mui/TextField";
-import CustomAutocomplete from "@core/components/mui/Autocomplete";
-import AppReactDatepicker from "@/libs/AppReactDatepicker";
-import AddCategory from "@/components/model/AddCategory";
+import CustomTextField from '@core/components/mui/TextField'
+import CustomAutocomplete from '@core/components/mui/Autocomplete'
+import AppReactDatepicker from '@/libs/AppReactDatepicker'
+import AddCategory from '@/components/model/AddCategory'
 
 interface SupplierFormValues {
-  supplierName: string;
-  supplierCode: string;
-  email: string;
-  phone: string;
-  origin: string;
-  whatsapp: string;
-  wechat: string;
-  brandSupplies: string;
-  address: string;
+  supplierName: string
+  supplierCode: string
+  email: string
+  phone: string
+  origin: string
+  whatsapp: string
+  wechat: string
+  brandSupplies: string
+  address: string
 
-  owner: string;
-  salesManager: string;
-  inception: Date | null;
-  employeePax: string;
-  domesticOffices: string;
-  internationalOffices: string;
-  turnover: string;
-  exportPercent: string;
+  owner: string
+  salesManager: string
+  inception: Date | null
+  employeePax: string
+  domesticOffices: string
+  internationalOffices: string
+  turnover: string
+  exportPercent: string
 
-  paymentTerms: string;
-  bankName: string;
-  accountNo: string;
-  ifsc: string;
+  paymentTerms: string
+  bankName: string
+  accountNo: string
+  ifsc: string
 
   production: {
-    category: string;
-    capacity: string;
-  }[];
+    category: string
+    capacity: string
+  }[]
 }
 
 const CreateSupplier = ({ token }: { token: string }) => {
-  const router = useRouter();
-  const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
+  const router = useRouter()
+  const API_URL = process.env.NEXT_PUBLIC_BASE_URL
 
-  const [countryList, setCountryList] = useState<any[]>([]);
-  const [paymentTermsList, setPaymentTermsList] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [bankList, setBankList] = useState<any[]>([]);
+  const [countryList, setCountryList] = useState<any[]>([])
+  const [paymentTermsList, setPaymentTermsList] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [bankList, setBankList] = useState<any[]>([])
   const [showAddCategory, setShowAddCategory] = useState(false)
 
   // ---------- Fetch dropdowns ----------
@@ -68,26 +62,26 @@ const CreateSupplier = ({ token }: { token: string }) => {
     try {
       const res = await fetch(`${API_URL}/supplier/dropdowns`, {
         headers: { Authorization: `Bearer ${token}` }
-      });
+      })
 
-      const data = await res.json();
+      const data = await res.json()
 
       if (res.ok) {
-        setCountryList(data.countries || []);
-        setPaymentTermsList(data.paymentTerms || []);
-        setCategories(data.categories || []);
-        setBankList(data.banks || []);
+        setCountryList(data.countries || [])
+        setPaymentTermsList(data.paymentTerms || [])
+        setCategories(data.categories || [])
+        setBankList(data.banks || [])
       } else {
-        toast.error("Failed to load dropdown data");
+        toast.error('Failed to load dropdown data')
       }
     } catch (e) {
-      toast.error("Something went wrong fetching dropdowns");
+      toast.error('Something went wrong fetching dropdowns')
     }
-  }, [API_URL, token]);
+  }, [API_URL, token])
 
   useEffect(() => {
-    fetchDropdowns();
-  }, [fetchDropdowns]);
+    fetchDropdowns()
+  }, [fetchDropdowns])
 
   // ---------- FORM SETUP ----------
   const {
@@ -97,64 +91,62 @@ const CreateSupplier = ({ token }: { token: string }) => {
     formState: { errors }
   } = useForm<SupplierFormValues>({
     defaultValues: {
-      supplierName: "",
-      supplierCode: "",
-      email: "",
-      phone: "",
-      whatsapp: "",
-      wechat: "",
-      brandSupplies: "",
-      address: "",
+      supplierName: '',
+      supplierCode: '',
+      email: '',
+      phone: '',
+      whatsapp: '',
+      wechat: '',
+      brandSupplies: '',
+      address: '',
 
-      owner: "",
-      salesManager: "",
+      owner: '',
+      salesManager: '',
       inception: null,
-      employeePax: "",
-      domesticOffices: "",
-      internationalOffices: "",
-      turnover: "",
-      exportPercent: "",
+      employeePax: '',
+      domesticOffices: '',
+      internationalOffices: '',
+      turnover: '',
+      exportPercent: '',
 
-      paymentTerms: "",
-      bankName: "",
-      accountNo: "",
-      ifsc: "",
+      paymentTerms: '',
+      bankName: '',
+      accountNo: '',
+      ifsc: '',
 
-      production: [
-        { category: "", capacity: "" }
-      ]
+      production: [{ category: '', capacity: '' }]
     }
-  });
+  })
 
   const { fields, append, remove } = useFieldArray({
-    name: "production",
+    name: 'production',
     control
-  });
+  })
 
   // ---------- SUBMIT ----------
   const onSubmit = async (data: SupplierFormValues) => {
     try {
       const response = await fetch(`${API_URL}/supplier/create`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(data)
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (response.ok) {
-        toast.success("Supplier created successfully!");
-        router.push("/list-supplier");
+        toast.success('Supplier created successfully!')
+        router.push('/list-supplier')
       } else {
-        toast.error(result.message || "Failed to create supplier");
+        toast.error(result.message || 'Failed to create supplier')
       }
     } catch (e) {
-      toast.error("Something went wrong!");
+      toast.error('Something went wrong!')
     }
-  };
+  }
 
   return (
     <div>
@@ -557,29 +549,23 @@ const CreateSupplier = ({ token }: { token: string }) => {
         {/* BOX CONTAINER */}
         <Card variant='outlined' className='p-4'>
           {fields.map((item, index) => (
-            <div key={item.id} className="mb-4 last:mb-0">
-
+            <div key={item.id} className='mb-4 last:mb-0'>
               {/* ROW CONTAINER */}
-              <div className="flex items-center gap-4">
-
+              <div className='flex items-center gap-4'>
                 {/* Category */}
-                <div className="flex-1">
+                <div className='flex-1'>
                   <Controller
                     name={`production.${index}.category`}
                     control={control}
-                    rules={{ required: "Category required" }}
+                    rules={{ required: 'Category required' }}
                     render={({ field: { value, onChange } }) => (
                       <CustomAutocomplete
                         fullWidth
                         options={categories}
                         value={categories.find(c => c === value) || null}
                         onChange={(e, val) => onChange(val)}
-                        renderInput={(params) => (
-                          <CustomTextField
-                            {...params}
-                            label="Category*"
-                            placeholder="Select category"
-                          />
+                        renderInput={params => (
+                          <CustomTextField {...params} label='Category*' placeholder='Select category' />
                         )}
                       />
                     )}
@@ -587,7 +573,7 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 </div>
 
                 {/* Capacity */}
-                <div className="flex-1">
+                <div className='flex-1'>
                   <Controller
                     name={`production.${index}.capacity`}
                     control={control}
@@ -595,38 +581,38 @@ const CreateSupplier = ({ token }: { token: string }) => {
                       <CustomTextField
                         {...field}
                         fullWidth
-                        label="Production Capacity"
-                        placeholder="Enter capacity units"
+                        label='Production Capacity'
+                        placeholder='Enter capacity units'
                       />
                     )}
                   />
                 </div>
 
                 {/* icons */}
-                <div className="flex items-center mt-4">
+                <div className='flex items-center mt-4'>
                   {index === 0 ? (
                     <IconButton
-                      onClick={() => append({ category: "", capacity: "" })}
+                      onClick={() => append({ category: '', capacity: '' })}
                       sx={{
-                        border: "1px solid #D0D5DD",
-                        background: "#EEF7FF",
+                        border: '1px solid #D0D5DD',
+                        background: '#EEF7FF',
                         width: 32,
-                        height: 32,
+                        height: 32
                       }}
                     >
-                      <IconPlus size={16} color="#1171B2" />
+                      <IconPlus size={16} color='#1171B2' />
                     </IconButton>
                   ) : (
                     <IconButton
                       onClick={() => remove(index)}
                       sx={{
-                        border: "1px solid #D0D5DD",
-                        background: "#FEECEC",
+                        border: '1px solid #D0D5DD',
+                        background: '#FEECEC',
                         width: 32,
-                        height: 32,
+                        height: 32
                       }}
                     >
-                      <span style={{ fontSize: 22, color: "#D92D20" }}>−</span>
+                      <span style={{ fontSize: 22, color: '#D92D20' }}>−</span>
                     </IconButton>
                   )}
                 </div>
@@ -658,9 +644,11 @@ const CreateSupplier = ({ token }: { token: string }) => {
         </div>
         <AddCategory
           open={showAddCategory}
-          onClose={() => setShowAddCategory(false)} token={""} onSuccess={function (): void {
-            throw new Error("Function not implemented.");
-          } }          // token={abhi}
+          onClose={() => setShowAddCategory(false)}
+          token={''}
+          onSuccess={function (): void {
+            throw new Error('Function not implemented.')
+          }} // token={abhi}
           // onSuccess={() => {
           //   fetchCaseTypes()
           // }}
@@ -668,6 +656,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
       </form>
     </div>
   )
-};
+}
 
-export default CreateSupplier;
+export default CreateSupplier

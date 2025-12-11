@@ -51,6 +51,7 @@ import ChevronRight from '@menu/svg/ChevronRight'
 
 // Style Imports
 import styles from '@core/styles/table.module.css'
+import { COLORS } from '@/utils/colors'
 
 // ---------- Types ----------
 
@@ -349,7 +350,14 @@ const ListBrand: React.FC<ListBrandProps> = ({ data }) => {
                   onClick={() => router.push('/brand/add-brand')}
                   variant='contained'
                   startIcon={<i className='tabler-plus' />}
-                  color='primary'
+                  sx={{
+                    backgroundColor: COLORS.black,
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: '#000', // keep black on hover
+                      opacity: 0.9
+                    }
+                  }}
                 >
                   Add Brand
                 </Button>

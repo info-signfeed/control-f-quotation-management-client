@@ -6,7 +6,7 @@ const dashboard = () => {
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <CategoryTable />
+        <CategoryTable data={[]} />
       </Grid>
     </Grid>
   )
