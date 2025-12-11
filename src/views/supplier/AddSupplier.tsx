@@ -20,6 +20,7 @@ import {
 import CustomTextField from "@core/components/mui/TextField";
 import CustomAutocomplete from "@core/components/mui/Autocomplete";
 import AppReactDatepicker from "@/libs/AppReactDatepicker";
+import AddCategory from "@/components/model/AddCategory";
 
 interface SupplierFormValues {
   supplierName: string;
@@ -625,7 +626,7 @@ const CreateSupplier = ({ token }: { token: string }) => {
                         height: 32,
                       }}
                     >
-                      <span style={{ fontSize: 22, fontWeight: "bold", color: "#D92D20" }}>−</span>
+                      <span style={{ fontSize: 22, color: "#D92D20" }}>−</span>
                     </IconButton>
                   )}
                 </div>
@@ -655,14 +656,15 @@ const CreateSupplier = ({ token }: { token: string }) => {
             Create Supplier
           </Button>
         </div>
-        {/* <AddCategory
-          open={showCreateType}
-          onClose={() => setShowCreateType(false)}
-          token={abhi}
-          onSuccess={() => {
-            fetchCaseTypes()
-          }}
-        /> */}
+        <AddCategory
+          open={showAddCategory}
+          onClose={() => setShowAddCategory(false)} token={""} onSuccess={function (): void {
+            throw new Error("Function not implemented.");
+          } }          // token={abhi}
+          // onSuccess={() => {
+          //   fetchCaseTypes()
+          // }}
+        />
       </form>
     </div>
   )
