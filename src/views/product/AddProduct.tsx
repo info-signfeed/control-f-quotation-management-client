@@ -14,6 +14,7 @@ import CustomTextField from '@core/components/mui/TextField'
 import CustomAutocomplete from '@core/components/mui/Autocomplete'
 import FileUploader from '@/components/FileUploader'
 import RichTextEditor from '@/components/RichTextEditor'
+import AddCategory from '@/components/model/AddCategory'
 
 // ------------ FORM TYPES ------------
 type FormValues = {
@@ -37,7 +38,10 @@ const AddProduct: React.FC<AddProductProps> = ({ token }) => {
   const [countryList, setCountryList] = useState<any[]>([])
   const [focusCategories, setFocusCategories] = useState<any[]>([])
   const [productList, setProductList] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+
   const [segments, setSegments] = useState<any[]>([])
+  const [showAddCategory, setShowAddCategory] = useState(false)
 
   // ------------ Fetch Dropdown Data ------------
   const fetchDropdowns = useCallback(async () => {
@@ -701,6 +705,44 @@ const AddProduct: React.FC<AddProductProps> = ({ token }) => {
             </Grid>
           </CardContent>
         </Card>
+        <Grid container spacing={6}>
+          <Grid item xs={12} sm={6}>
+            <Card variant='outlined' sx={{ mt: 4 }}>
+              <Box className='py-4 px-6 border-b' display='flex' alignItems='center' justifyContent='space-between'>
+                <Typography variant='h6'>Category</Typography>
+
+                <Button
+                  variant='text'
+                  size='small'
+                  startIcon={<i className='tabler-plus' />}
+                  onClick={() => setShowAddCategory(true)}
+                >
+                  Create Category
+                </Button>
+              </Box>
+              <CardContent>
+                <Grid xs={12}>
+                  <Controller
+                    name='category'
+                    control={control}
+                    rules={{ required: 'Category required' }}
+                    render={({ field: { value, onChange } }) => (
+                      <CustomAutocomplete
+                        fullWidth
+                        options={categories}
+                        value={categories.find(c => c === value) || null}
+                        onChange={(e, val) => onChange(val)}
+                        renderInput={params => (
+                          <CustomTextField {...params} label='Category*' placeholder='Select category' />
+                        )}
+                      />
+                    )}
+                  />
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
 
         {/* Footer Buttons */}
         <Grid item xs={12} className='flex justify-end gap-4 mt-6'>
@@ -712,6 +754,18 @@ const AddProduct: React.FC<AddProductProps> = ({ token }) => {
             Save
           </Button>
         </Grid>
+
+        <AddCategory
+          open={showAddCategory}
+          onClose={() => setShowAddCategory(false)}
+          token={''}
+          onSuccess={function (): void {
+            throw new Error('Function not implemented.')
+          }} // token={abhi}
+          // onSuccess={() => {
+          //   fetchCaseTypes()
+          // }}
+        />
       </form>
     </div>
   )

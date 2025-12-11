@@ -60,6 +60,7 @@ import Image from 'next/image'
 
 import { User } from '@/types/userType'
 import { toast } from 'react-toastify'
+import { COLORS } from '@/utils/colors'
 // import { exportToExcel } from '@/utils/exportToExcel'
 // import StationNameMenuCell from '@/components/StationNameMenuCell'
 
@@ -369,7 +370,14 @@ const ListUser: React.FC<ListUserProps> = ({ data }) => {
                   onClick={() => router.push('/users/add-user')}
                   variant='contained'
                   startIcon={<i className='tabler-plus' />}
-                  color='primary'
+                  sx={{
+                    backgroundColor: COLORS.black,
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: '#000', // keep black on hover
+                      opacity: 0.9
+                    }
+                  }}
                 >
                   Add User
                 </Button>
