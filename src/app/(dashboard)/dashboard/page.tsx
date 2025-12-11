@@ -80,13 +80,9 @@ export default function DashboardPage() {
             className='is-[160px]'
             SelectProps={{ displayEmpty: true }}
           >
-            <MenuItem value=''>30 days</MenuItem>
-            <MenuItem value='downloaded'>Downloaded</MenuItem>
-            <MenuItem value='draft'>Draft</MenuItem>
-            <MenuItem value='paid'>Paid</MenuItem>
-            <MenuItem value='partial-payment'>Partial Payment</MenuItem>
-            <MenuItem value='past-due'>Past Due</MenuItem>
-            <MenuItem value='sent'>Sent</MenuItem>
+            <MenuItem value=''>7 days</MenuItem>
+            <MenuItem value='30'>30 days</MenuItem>
+            <MenuItem value='90'>90 days</MenuItem>
           </CustomTextField>
         </div>
       </Grid>

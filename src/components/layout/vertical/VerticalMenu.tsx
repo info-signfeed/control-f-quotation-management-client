@@ -20,7 +20,6 @@ import useVerticalNav from '@menu/hooks/useVerticalNav'
 import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNavExpandIcon'
 
 // Style Imports
-import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
 
 type RenderExpandIconProps = {
@@ -39,20 +38,17 @@ const RenderExpandIcon = ({ open, transitionDuration }: RenderExpandIconProps) =
 )
 
 const VerticalMenu = ({ scrollMenu }: Props) => {
-  // Hooks
   const theme = useTheme()
   const verticalNavOptions = useVerticalNav()
   const { settings } = useSettings()
   const { isBreakpointReached } = useVerticalNav()
 
-  // Vars
   const { transitionDuration } = verticalNavOptions
-
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
 
+  // @ts-ignore
+  // @ts-ignore
   return (
-    // eslint-disable-next-line lines-around-comment
-    /* Custom scrollbar instead of browser scroll, remove if you want browser scroll only */
     <ScrollWrapper
       {...(isBreakpointReached
         ? {
@@ -64,11 +60,31 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
             onScrollY: container => scrollMenu(container, true)
           })}
     >
-      {/* Incase you also want to scroll NavHeader to scroll with Vertical Menu, remove NavHeader from above and paste it below this comment */}
-      {/* Vertical Menu */}
       <Menu
         popoutMenuOffset={{ mainAxis: 23 }}
-        menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
+        menuItemStyles={{
+          button: {
+            backgroundColor: '#000000',
+            color: '#FFF',
+            '&:hover': {
+              color: '#262262'
+            }
+          },
+
+          active: {
+            backgroundColor: '#1171B2 !important',
+            color: '#262262 !important',
+            '& .menu-item-label': {
+              color: '#262262 !important'
+            },
+            '& i': {
+              color: '#262262 !important'
+            }
+          },
+
+          label: { color: '#F2F4F6' },
+          icon: { color: '#FFF' }
+        }}
         renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
         renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
@@ -84,12 +100,8 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           <MenuItem href='/customer/list-customer'>Customer</MenuItem>
 
           <MenuItem href='/product/list-product'>Product</MenuItem>
-          <MenuItem href='/listcategory' icon={<i className='tabler-category' />}>
-            Category
-          </MenuItem>
-          <MenuItem href='/list-sub-category' icon={<i className='tabler-category-2' />}>
-            Sub-Category
-          </MenuItem>
+          <MenuItem href='/listcategory'>Category</MenuItem>
+          <MenuItem href='/list-sub-category'>Sub-Category</MenuItem>
         </SubMenu>
         <MenuItem href='/approvalmatrix' icon={<i className='tabler-brand-matrix' />}>
           Approval Matrix
