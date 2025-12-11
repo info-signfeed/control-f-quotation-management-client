@@ -2,7 +2,10 @@
 
 // React Imports
 import { useEffect, useMemo, useState } from 'react'
+
 import { useRouter } from 'next/navigation'
+
+import { toast } from 'react-toastify'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -12,7 +15,8 @@ import { Button, Checkbox, Grid, IconButton, ListItemIcon, Menu, MenuItem, Typog
 
 // Third-party Imports
 import classnames from 'classnames'
-import {
+
+import type {
   Cell,
   CellContext,
   Column,
@@ -21,7 +25,9 @@ import {
   FilterFn,
   HeaderGroup,
   Row,
-  Table,
+  Table
+} from '@tanstack/react-table'
+import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
@@ -33,6 +39,7 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table'
+
 import { rankItem } from '@tanstack/match-sorter-utils'
 
 // Component Imports
@@ -44,10 +51,6 @@ import ChevronRight from '@menu/svg/ChevronRight'
 
 // Style Imports
 import styles from '@core/styles/table.module.css'
-
-// Utils
-import Image from 'next/image'
-import { toast } from 'react-toastify'
 import { COLORS } from '@/utils/colors'
 
 // ---------- Types ----------
@@ -64,7 +67,7 @@ export interface Brand {
   isHidden?: boolean
 }
 
-interface ListBrandProps {
+interface ListProductProps {
   data: Brand[]
 }
 
@@ -76,6 +79,7 @@ const fuzzyFilter: FilterFn<Brand> = (row, columnId, value) => {
   const search = String(value ?? '')
     .toLowerCase()
     .trim()
+
   const cellValue = String(row.getValue(columnId) ?? '').toLowerCase()
 
   const itemRank = rankItem(cellValue, search)
@@ -148,13 +152,7 @@ const Filter = ({ column, table }: { column: Column<any, unknown>; table: Table<
   )
 }
 
-const MaxLengthCell = ({ value, maxLength }: { value: string; maxLength: number }) => {
-  if (!value) return <span>-</span>
-
-  return <span title={value}>{value.length > maxLength ? `${value.substring(0, maxLength)}...` : value}</span>
-}
-
-const ListRecentQuotation: React.FC<ListBrandProps> = ({ data }) => {
+const ListProduct: React.FC<ListProductProps> = ({ data }) => {
   const router = useRouter()
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -209,43 +207,43 @@ const ListRecentQuotation: React.FC<ListBrandProps> = ({ data }) => {
       },
 
       columnHelper.accessor('brandName', {
-        header: 'Ref No.',
+        header: 'Brand Name',
         cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
       columnHelper.accessor('manufacturer', {
-        header: 'Customer/Supplier',
+        header: 'Manufacturer',
         cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
       columnHelper.accessor('origin', {
-        header: 'Country',
+        header: 'Origin',
         cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
       columnHelper.accessor('focusCategory', {
-        header: 'Gross Profit(%)',
+        header: 'Focus Category',
         cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
       columnHelper.accessor('products', {
-        header: 'Date',
+        header: 'Products',
         cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
       columnHelper.accessor('headOffice', {
-        header: 'Status',
+        header: 'Head Office',
         cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
       columnHelper.accessor('segment', {
-        header: 'Reason',
+        header: 'Segment',
         cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
@@ -293,14 +291,11 @@ const ListRecentQuotation: React.FC<ListBrandProps> = ({ data }) => {
 
   const selectedRows = table.getSelectedRowModel().rows.map(row => row.original)
 
-  const handleAddBrand = () => {
-    router.push('/brands/add-brand')
-  }
-
   const handleExportBrands = (brands: Brand[]) => {
     try {
       if (!brands || brands.length === 0) {
         toast.error('No data available for export')
+
         return
       }
 
@@ -316,40 +311,57 @@ const ListRecentQuotation: React.FC<ListBrandProps> = ({ data }) => {
     toast.info('Import Brand clicked')
   }
 
+  // @ts-ignore
   return (
     <>
       <div className='flex flex-col gap-4'>
         <Card variant='outlined' sx={{ p: 4 }}>
-          <Grid container spacing={2} alignItems='center'>
-            <Grid item xs={12} md={4}>
-              <Typography variant='h5'>Recent Quotations</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant='h5' mb={2}>
+                Product Master ({data.length})
+              </Typography>
             </Grid>
 
-            <Grid item xs={12} md={8} display='flex' justifyContent='flex-end' alignItems='center' gap={2}>
-              <DebouncedInput
-                value={globalFilter ?? ''}
-                onChange={value => setGlobalFilter(String(value))}
-                placeholder='Search...'
-                className='w-full'
-                style={{ maxWidth: 250 }}
-              />
+            <Grid item xs={12} container alignItems='center' justifyContent='space-between'>
+              <Grid item xs={12} sm={6}>
+                <DebouncedInput
+                  value={globalFilter ?? ''}
+                  onChange={value => setGlobalFilter(String(value))}
+                  placeholder='Search Brands...'
+                  className='w-full'
+                />
+              </Grid>
 
-              <Button
-                variant='outlined'
-                startIcon={<i className='tabler-download' style={{ transform: 'rotate(180deg)' }} />}
-                onClick={() => handleExportBrands(selectedRows.length ? selectedRows : data)}
-                sx={{
-                  color: COLORS.black,
-                  borderWidth: 1,
-                  borderColor: COLORS.black,
-                  '&:hover': {
-                    borderColor: COLORS.black,
-                    backgroundColor: 'rgba(0,0,0,0.04)'
-                  }
-                }}
-              >
-                Export Report
-              </Button>
+              <Grid item xs={12} sm={6} display='flex' justifyContent='flex-end' gap={2}>
+                <Button
+                  variant='outlined'
+                  startIcon={<i className='tabler-download' style={{ transform: 'rotate(180deg)' }} />}
+                  onClick={() => handleExportBrands(selectedRows.length ? selectedRows : data)}
+                >
+                  Export Items
+                </Button>
+
+                <Button variant='outlined' startIcon={<i className='tabler-upload' />} onClick={handleImportBrands}>
+                  Import Items
+                </Button>
+
+                <Button
+                  onClick={() => router.push('/product/add-product')}
+                  variant='contained'
+                  startIcon={<i className='tabler-plus' />}
+                  sx={{
+                    backgroundColor: COLORS.black,
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: '#000', // keep black on hover
+                      opacity: 0.9
+                    }
+                  }}
+                >
+                  Add Product
+                </Button>
+              </Grid>
             </Grid>
           </Grid>
         </Card>
@@ -459,4 +471,4 @@ const ListRecentQuotation: React.FC<ListBrandProps> = ({ data }) => {
   )
 }
 
-export default ListRecentQuotation
+export default ListProduct

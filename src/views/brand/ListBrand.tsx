@@ -25,7 +25,8 @@ import type {
   FilterFn,
   HeaderGroup,
   Row,
-  Table} from '@tanstack/react-table';
+  Table
+} from '@tanstack/react-table'
 import {
   createColumnHelper,
   flexRender,
@@ -289,13 +290,12 @@ const ListBrand: React.FC<ListBrandProps> = ({ data }) => {
 
   const selectedRows = table.getSelectedRowModel().rows.map(row => row.original)
 
-
   const handleExportBrands = (brands: Brand[]) => {
     try {
       if (!brands || brands.length === 0) {
         toast.error('No data available for export')
 
-return
+        return
       }
 
       console.log('Export brands', brands)

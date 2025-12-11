@@ -63,7 +63,15 @@ export default function DashboardPage() {
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <div className='flex justify-between'>
-          <Typography variant='h4'>Dashboard</Typography>
+          <Typography
+            variant='h3'
+            sx={{
+              fontWeight: 'semi-bold',
+              fontSize: '20px'
+            }}
+          >
+            Dashboard
+          </Typography>
           <CustomTextField
             select
             id='select-duration'
@@ -200,27 +208,29 @@ export default function DashboardPage() {
                 </Box>
 
                 {/* Country List */}
-                <Box sx={{ mt: 2, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, padding: 2 }}>
+                <Box sx={{ mt: 2, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, padding: 2 }}>
                   {salesData.map((item, index) => (
                     <Box key={index}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                        <Typography fontSize='0.85rem' fontWeight={600}>
+                        <Typography fontSize='0.85rem' fontWeight={600} color='text.primary'>
                           {item.name}
                         </Typography>
-                        <Typography fontSize='0.85rem' fontWeight={700}>
+                        <Typography fontSize='0.85rem' fontWeight={700} color='text.primary'>
                           {item.value}
                         </Typography>
                       </Box>
 
-                      <Box sx={{ height: 4, borderRadius: 2, backgroundColor: '#E0E0E0', overflow: 'hidden', mb: 0.5 }}>
+                      <Box
+                        sx={{ height: 6, borderRadius: '1px', backgroundColor: '#E0E0E0', overflow: 'hidden', mb: 0.5 }}
+                      >
                         <Box sx={{ width: item.percent, height: '100%', backgroundColor: '#1976d2' }} />
                       </Box>
 
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography fontSize='0.72rem' color='text.secondary'>
+                        <Typography fontSize='0.72rem' color='text.primary'>
                           Total sales
                         </Typography>
-                        <Typography fontSize='0.72rem' fontWeight={600}>
+                        <Typography fontSize='0.72rem' fontWeight={600} color='text.primary'>
                           {item.percent}
                         </Typography>
                       </Box>
@@ -251,7 +261,9 @@ export default function DashboardPage() {
                   <Box key={index} sx={{ mb: 1.5 }}>
                     {/* Customer name + percentage */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography fontSize='0.85rem'>{item.name}</Typography>
+                      <Typography fontSize='0.85rem' fontWeight={700} color='text.primary'>
+                        {item.name}
+                      </Typography>
                       <Typography fontSize='0.85rem' fontWeight={700}>
                         {item.percent}%
                       </Typography>
@@ -263,7 +275,7 @@ export default function DashboardPage() {
                         width: '100%',
                         height: 10,
                         backgroundColor: '#E0E0E0',
-                        borderRadius: 5,
+                        borderRadius: '1px',
                         overflow: 'hidden'
                       }}
                     >
@@ -272,7 +284,7 @@ export default function DashboardPage() {
                           width: `${item.percent}%`,
                           height: '100%',
                           backgroundColor: '#8C74FF',
-                          borderRadius: 5
+                          borderRadius: '1px'
                         }}
                       />
                     </Box>
@@ -297,7 +309,9 @@ export default function DashboardPage() {
                   <Box key={index} sx={{ mb: 1.5 }}>
                     {/* Customer name + percentage */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography fontSize='0.85rem'>{item.name}</Typography>
+                      <Typography fontSize='0.85rem' fontWeight={700} color='text.primary'>
+                        {item.name}
+                      </Typography>
                       <Typography fontSize='0.85rem' fontWeight={700}>
                         {item.percent}%
                       </Typography>
@@ -309,7 +323,7 @@ export default function DashboardPage() {
                         width: '100%',
                         height: 10,
                         backgroundColor: '#E0E0E0',
-                        borderRadius: 5,
+                        borderRadius: '1px',
                         overflow: 'hidden'
                       }}
                     >
@@ -318,7 +332,7 @@ export default function DashboardPage() {
                           width: `${item.percent}%`,
                           height: '100%',
                           backgroundColor: '#7996A5',
-                          borderRadius: 5
+                          borderRadius: '1px'
                         }}
                       />
                     </Box>
@@ -344,7 +358,9 @@ export default function DashboardPage() {
                   <Box key={index} sx={{ mb: 1.5 }}>
                     {/* Customer name + percentage */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography fontSize='0.85rem'>{item.name}</Typography>
+                      <Typography fontSize='0.85rem' fontWeight={700} color='text.primary'>
+                        {item.name}
+                      </Typography>
                       <Typography fontSize='0.85rem' fontWeight={700}>
                         {item.percent}%
                       </Typography>
@@ -356,7 +372,7 @@ export default function DashboardPage() {
                         width: '100%',
                         height: 10,
                         backgroundColor: '#E0E0E0',
-                        borderRadius: 5,
+                        borderRadius: '1px',
                         overflow: 'hidden'
                       }}
                     >
@@ -365,7 +381,7 @@ export default function DashboardPage() {
                           width: `${item.percent}%`,
                           height: '100%',
                           backgroundColor: '#3370FF',
-                          borderRadius: 5
+                          borderRadius: '1px'
                         }}
                       />
                     </Box>
