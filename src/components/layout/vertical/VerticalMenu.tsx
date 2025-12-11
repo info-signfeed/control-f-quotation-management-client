@@ -77,7 +77,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           Dashboard
         </MenuItem>
 
-        <SubMenu label='Master' icon={<i className='tabler-crown'/>}>
+        <SubMenu label='Master' icon={<i className='tabler-crown' />}>
           <MenuItem href='/users'>Users</MenuItem>
           <MenuItem href='/brand/list-brand'>Brand</MenuItem>
           <MenuItem href='/supplier/list-supplier'>Supplier</MenuItem>
@@ -90,10 +90,6 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           <MenuItem href='/list-sub-category' icon={<i className='tabler-category-2' />}>
             Sub-Category
           </MenuItem>
-          <MenuItem href='/approvalmatrix' icon={<i className='tabler-brand-matrix' />}>
-            Approval Matrix
-          </MenuItem>
-
         </SubMenu>
         <MenuItem href='/approvalmatrix' icon={<i className='tabler-brand-matrix' />}>
           Approval Matrix
