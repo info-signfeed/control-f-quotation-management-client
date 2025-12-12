@@ -1,9 +1,9 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Grid } from '@mui/material'
-import ListCustomer from '@/views/customer/ListCustomer'
+import UpdateBrand from '@/views/brand/UpdateBrand'
 
-const ListCustomerPage = () => {
+const UpdateBrandPage = () => {
   const token = cookies().get('accessToken')?.value
   if (!token) {
     redirect('/login')
@@ -12,10 +12,10 @@ const ListCustomerPage = () => {
   return (
     <Grid container>
       <Grid item xs={12}>
-        <ListCustomer token={token!} />
+        <UpdateBrand token={token!}/>
       </Grid>
     </Grid>
   )
 }
 
-export default ListCustomerPage
+export default UpdateBrandPage

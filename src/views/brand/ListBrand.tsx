@@ -164,51 +164,9 @@ const ListBrand: React.FC<ListBrandProps> = ({ token }) => {
   }
 
   const handleEdit = (brand: Brand) => {
-    router.push(`/brands/update-brand/${brand.id}`)
+    router.push(`/brand/update-brand/${brand.id}`)
     handleMenuClose()
   }
-
-
-
-
-  const handleToggleHide = async (brand: Brand) => {
-  try {
-    // Toggle logic
-    const updatedStatus = !brand.isActive;
-
-    const payload = {
-      brandId: brand.id,
-      isActive: updatedStatus
-    };
-
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/brand/update-brand`,
-      {
-        method: "POST", 
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    const res = await response.json();
-
-    if (response.ok) {
-      toast.success(`${updatedStatus ? "Unhidden" : "Hidden"} successfully`);
-      fetchData();
-    } else {
-      toast.error(res?.message || "Failed to update brand");
-    }
-  } catch (err) {
-    console.error("Error toggling hide:", err);
-    toast.error("Something went wrong");
-  }
-
-  handleMenuClose();
-};
-
 
   const handleRemove = async (brand: Brand) => {
     try {
@@ -224,7 +182,7 @@ const ListBrand: React.FC<ListBrandProps> = ({ token }) => {
 
       if (response.ok) {
         toast.success('Brand deleted successfully')
-        fetchData() // refresh brand list
+        fetchData()
       } else {
         toast.error(res?.message || 'Failed to delete brand')
       }

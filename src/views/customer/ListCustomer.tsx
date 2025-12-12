@@ -160,7 +160,7 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ token }) => {
   }
 
   const handleEdit = (customer: Customer) => {
-    router.push(`/customers/update-customer/${customer.id}`)
+    router.push(`/customer/update-customer/${customer.id}`)
     handleMenuClose()
   }
 

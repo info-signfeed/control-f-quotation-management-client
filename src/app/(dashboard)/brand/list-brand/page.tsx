@@ -12,7 +12,7 @@ const ListBrandPage = () => {
   return (
     <Grid container>
       <Grid item xs={12}>
-        <ListBrand token={token!} data={[]} />
+        <ListBrand token={token!}/>
       </Grid>
     </Grid>
   )
