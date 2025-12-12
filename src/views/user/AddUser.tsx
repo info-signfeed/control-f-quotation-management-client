@@ -12,16 +12,17 @@ import { toast } from 'react-toastify'
 
 export type FormValues = {
   userName: string
-  district: string
   userPassword: string
-  fullName: string
+  firstName: string
+  lastName: string
   userEmail: string
   userMobile: string
+  employeeId: string
+  userDepartment: string
   gender: string
-  roleId: number | null
-  permissionIds: number[]
   file: File | null
-  stationIds: string[] | null
+  userRole: number | null
+  permissionIds: number[]
 }
 
 interface RoleType {
@@ -49,10 +50,17 @@ interface AddUserProps {
   userData?: User | null
 }
 
+interface PermissionType {
+  id: number
+  permissionName: string
+  isActive: boolean
+}
+
 const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
   const router = useRouter()
   const [isPasswordShown, setIsPasswordShown] = useState<boolean>(false)
   const [rolelist, setRoleList] = useState<RoleType[]>([])
+  const [permissionList, setPermissionList] = useState<PermissionType[]>([])
   // const [stations, setStations] = useState<StationType[]>([])
 
   const {
@@ -66,15 +74,13 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
     defaultValues: {
       userName: '',
       userPassword: '',
-      fullName: '',
+      firstName: '',
       userEmail: '',
       userMobile: '',
       gender: '',
-      roleId: null,
-      district: '',
-      permissionIds: [],
       file: null,
-      stationIds: []
+      userRole: null,
+      permissionIds: []
     }
   })
 
@@ -83,22 +89,23 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
       reset({
         userName: userData.username,
         userPassword: '',
-        fullName: userData.fullName,
+        firstName: userData.firstName,
+        // lastName: userData.lastName,
         userEmail: userData.email,
         userMobile: userData.mobile,
         gender: userData.gender,
-        roleId: userData.roleId,
-        district: userData.district,
+        userRole: userData.userRole,
         permissionIds: [],
-        file: null,
-        stationIds: userData.stationData?.map(s => s?.stationId) || []
+        file: null
       })
     }
   }, [userData, reset])
 
+  const selectedUserRole = useWatch({ control, name: 'userRole' })
+
   const fetchUserRole = useCallback(async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/admin/list-user-role`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/admin/role-list`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`
@@ -107,7 +114,7 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
 
       if (response.ok) {
         const res = await response.json()
-        setRoleList(res?.userRoleList)
+        setRoleList(res?.data)
       } else {
         console.error('Failed to fetch roles:', response.statusText)
       }
@@ -116,69 +123,70 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
     }
   }, [token])
 
-  const district = useWatch({ control, name: 'district' })
-
-  const fetchAllStation = useCallback(
-    async (dist?: string) => {
-      if (!dist) return // prevent call if no district selected
-
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/admin/stations-by-district?district=${encodeURIComponent(dist)}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        )
-
-        const result = await response.json()
-        console.log('Stations:', result)
-
-        if (response.ok && result.status === 200) {
-          // setStations(result.data)
+  const fetchAllPermission = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/admin/permission-list`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`
         }
-      } catch (error) {
-        console.error('Fetch Stations Error:', error)
+      })
+
+      if (response.ok) {
+        const res = await response.json()
+        setPermissionList(res?.data)
+      } else {
+        console.error('Failed to fetch roles:', response.statusText)
       }
-    },
-    [token]
-  )
+    } catch (error) {
+      console.error('Error fetching user roles:', error)
+    }
+  }, [token])
+
+  // const district = useWatch({ control, name: 'district' })
 
   useEffect(() => {
     if (!token) return
     fetchUserRole()
-  }, [token, fetchUserRole])
-
-  // Watch for district changes to refetch stations
-  useEffect(() => {
-    if (district) {
-      fetchAllStation(district)
-    }
-  }, [district, fetchAllStation])
+    fetchAllPermission()
+  }, [token, fetchUserRole, fetchAllPermission])
 
   const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
   const onSubmit = async (data: FormValues) => {
+    console.log('data: ', data)
     const formData = new FormData()
 
     formData.append('userName', data.userName)
     formData.append('userPassword', data.userPassword)
-    formData.append('fullName', data.fullName)
+    formData.append('firstName', data.firstName)
+    formData.append('lastName', data.lastName)
     formData.append('userEmail', data.userEmail)
     formData.append('userMobile', data.userMobile)
+    formData.append('userDepartment', data.userDepartment)
+    formData.append('employeeId', data.employeeId)
+    // formData.append('userRole', data.userRole)
+    // formData.append('permissionIds', data?.permissionIds)
+
     formData.append('gender', data.gender)
-    formData.append('district', data.district)
 
     // Role ID
-    if (data.roleId != null) {
-      formData.append('roleId', String(data.roleId))
+    if (data.userRole != null) {
+      formData.append('userRole', String(data.userRole))
     }
 
-    // Station IDs array for backend
-    if (Array.isArray(data.stationIds)) {
-      data.stationIds.forEach(id => {
-        formData.append('stationIds[]', String(id))
-      })
-    }
+    const staticIds = [1, 2, 3]
+
+    staticIds.forEach(id => {
+      formData.append('permissionIds', String(id))
+    })
+
+    // // // Station IDs array for backend
+    // if (Array.isArray(data.permissionIds)) {
+    //   data.permissionIds.forEach(id => {
+    //     formData.append('permissionIds[]', String(id))
+    //   })
+    // }
 
     // File
     if (data.file) {
@@ -191,8 +199,8 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
     }
 
     const url = userData
-      ? `${process.env.NEXT_PUBLIC_BASE_URL}/admin/update-register-user`
-      : `${process.env.NEXT_PUBLIC_BASE_URL}/admin/add-register-user`
+      ? `${process.env.NEXT_PUBLIC_BASE_URL}/employee/create-employee`
+      : `${process.env.NEXT_PUBLIC_BASE_URL}/employee/create-employee`
 
     const response = await fetch(url, {
       method: 'POST',
@@ -226,11 +234,8 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
           {userData ? 'Update User' : ' Create User'}
         </h1> */}
 
-          <h1 className='text-[#232F6F] text-xl font-semibold flex items-center gap-2'>
-          <span
-            className='cursor-pointer flex items-center justify-center'
-            onClick={() => router.push('/users')}
-          >
+        <h1 className='text-[#232F6F] text-xl font-semibold flex items-center gap-2'>
+          <span className='cursor-pointer flex items-center justify-center' onClick={() => router.push('/users')}>
             <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
               <path
                 d='M9.97149 18.1108C10.0939 18.2317 10.1921 18.3776 10.2602 18.5396C10.3284 18.7017 10.365 18.8766 10.3679 19.054C10.3709 19.2314 10.3401 19.4076 10.2774 19.5721C10.2148 19.7366 10.1215 19.886 10.0031 20.0115C9.88479 20.1369 9.74383 20.2358 9.58865 20.3023C9.43347 20.3687 9.26726 20.4014 9.09993 20.3982C8.9326 20.3951 8.76758 20.3563 8.61471 20.2841C8.46184 20.2119 8.32426 20.1078 8.21017 19.978L1.56368 12.932C1.3303 12.6843 1.19922 12.3485 1.19922 11.9984C1.19922 11.6483 1.3303 11.3126 1.56368 11.0649L8.21017 4.01892C8.32426 3.88912 8.46184 3.78501 8.61471 3.71281C8.76758 3.6406 8.9326 3.60177 9.09993 3.59864C9.26726 3.59551 9.43347 3.62814 9.58865 3.69459C9.74382 3.76103 9.88479 3.85993 10.0031 3.98538C10.1215 4.11083 10.2148 4.26027 10.2774 4.42477C10.3401 4.58927 10.3709 4.76547 10.3679 4.94285C10.365 5.12024 10.3284 5.29518 10.2602 5.45724C10.1921 5.61929 10.0939 5.76514 9.97149 5.88609L5.45188 10.6773L21.553 10.6773C21.8835 10.6773 22.2005 10.8165 22.4342 11.0643C22.6679 11.312 22.7992 11.6481 22.7992 11.9984C22.7992 12.3488 22.6679 12.6848 22.4342 12.9326C22.2005 13.1804 21.8835 13.3195 21.553 13.3195L5.45188 13.3196L9.97149 18.1108Z'
@@ -314,7 +319,7 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
               <Grid container spacing={6}>
                 <Grid item xs={12} sm={6}>
                   <Controller
-                    name='fullName'
+                    name='firstName'
                     control={control}
                     rules={{
                       required: 'This field is required.',
@@ -326,8 +331,8 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
                         fullWidth
                         label='Full Name*'
                         placeholder='Enter Full Name'
-                        error={!!errors.fullName}
-                        helperText={errors.fullName ? errors.fullName.message : ''}
+                        error={!!errors.firstName}
+                        helperText={errors.firstName ? errors.firstName.message : ''}
                       />
                     )}
                   />
@@ -389,33 +394,20 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Controller
-                    name='userMobile'
+                    name='employeeId'
                     control={control}
                     rules={{
                       required: 'This field is required.',
-                      pattern: {
-                        value: /^[0-9]+$/,
-                        message: 'Only numbers are allowed.'
-                      },
-                      maxLength: {
-                        value: 10,
-                        message: 'Mobile number cannot exceed 10 digits.'
-                      }
+                      validate: value => value.trim() !== '' || 'This field is required.'
                     }}
-                    render={({ field: { onChange, value, ...rest } }) => (
+                    render={({ field }) => (
                       <CustomTextField
-                        {...rest}
-                        value={value || ''}
+                        {...field}
                         fullWidth
                         label='Employee ID*'
-                        type='tel'
                         placeholder='Enter Employee ID'
-                        error={!!errors.userMobile}
-                        helperText={errors.userMobile?.message}
-                        onChange={e => {
-                          const numeric = e.target.value.replace(/\D/g, '')
-                          onChange(numeric)
-                        }}
+                        error={!!errors.employeeId}
+                        helperText={errors.employeeId ? errors.employeeId.message : ''}
                       />
                     )}
                   />
@@ -462,8 +454,8 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
                     render={({ field: { value, onChange } }) => {
                       // Detect if we have an existing image from backend
                       const existingImageUrl =
-                        userData?.profileUrl && !value
-                          ? `${process.env.NEXT_PUBLIC_BASE_URL}${userData?.profileUrl}`
+                        userData?.profilePic && !value
+                          ? `${process.env.NEXT_PUBLIC_BASE_URL}${userData?.profilePic}`
                           : null
                       return (
                         <Box display='flex' flexDirection='column' gap={2}>
@@ -546,7 +538,7 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
               <Grid container spacing={6}>
                 <Grid item xs={12} sm={6}>
                   <Controller
-                    name='roleId'
+                    name='userRole'
                     control={control}
                     rules={{ required: 'This field is required.' }}
                     render={({ field: { value, onChange } }) => {
@@ -574,8 +566,8 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
                               {...params}
                               placeholder='Select Role'
                               label='Role*'
-                              error={!!errors.roleId}
-                              helperText={errors.roleId ? errors.roleId.message : ''}
+                              error={!!errors.userRole}
+                              helperText={errors.userRole ? errors.userRole.message : ''}
                             />
                           )}
                         />
@@ -583,94 +575,49 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
                     }}
                   />
                 </Grid>
-
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <Controller
                     name='permissionIds'
                     control={control}
-                    rules={{ required: 'Permission is required.' }}
-                    render={({ field: { value, onChange } }) => (
-                      <CustomAutocomplete
-                        fullWidth
-                        id='permission-select'
-                        options={districtList}
-                        // value={value ? districtList.find(opt => opt.value === value) : null}
-                        // onChange={(e, newVal) => {
-                        //   const selectedDistrict = newVal?.value || ''
-                        //   onChange(selectedDistrict)
-
-                        //   // Trigger your API fetch here
-                        //   if (selectedDistrict) {
-                        //     fetchAllStation(selectedDistrict)
-                        //   }
-                        // }}
-                        onChange={(e, newVal) => {
-                          const selectedDistrict = newVal?.value || ''
-                          onChange(selectedDistrict)
-
-                          if (selectedDistrict) {
-                            fetchAllStation(selectedDistrict)
-                          } else {
-                            setValue('stationIds', [])
-                            // setStations([])
-                          }
-                        }}
-                        getOptionLabel={o => o?.label || ''}
-                        renderInput={params => (
-                          <CustomTextField
-                            {...params}
-                            label='Permissions*'
-                            placeholder='Select Permission'
-                            error={!!errors.district}
-                            helperText={errors.district?.message}
-                          />
-                        )}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* <Grid item xs={12}>
-                  <Controller
-                    name='stationIds'
-                    control={control}
                     rules={{ required: 'This field is required.' }}
                     render={({ field: { value = [], onChange } }) => {
-                      const selectedStations = stations?.filter(st => value?.includes(st.stationId)) || []
+                      const selectedPermissions =
+                        permissionList?.filter(permission => value?.includes(permission.id)) || []
 
                       return (
                         <CustomAutocomplete
                           fullWidth
                           multiple
-                          options={stations}
+                          options={permissionList}
                           id='autocomplete-controlled'
-                          value={selectedStations}
+                          value={selectedPermissions}
                           onChange={(e, newValue) => {
-                            const ids = newValue.map(v => v.stationId) // <-- correct
+                            const ids = newValue.map(v => v.id) // <-- correct
                             onChange(ids)
                           }}
-                          isOptionEqualToValue={(option, val) => option.stationId === val.stationId}
+                          isOptionEqualToValue={(option, val) => option.id === val.id}
                           getOptionLabel={option =>
-                            option.stationName
-                              ? option.stationName.charAt(0).toUpperCase() + option.stationName.slice(1).toLowerCase()
+                            option.permissionName
+                              ? option.permissionName.charAt(0).toUpperCase() +
+                                option.permissionName.slice(1).toLowerCase()
                               : ''
                           }
-                          renderTags={tagValue => <span>{tagValue.map(t => t.stationName).join(', ')}</span>}
+                          renderTags={tagValue => <span>{tagValue.map(t => t.permissionName).join(', ')}</span>}
                           renderInput={params => (
                             <CustomTextField
                               {...params}
-                              placeholder='Select Station'
-                              label='Assign Station*'
-                              error={!!errors.stationIds}
-                              helperText={errors.stationIds?.message}
-                              disabled={!district}
+                              placeholder='Select Permission'
+                              label='Assign Permission*'
+                              error={!!errors.permissionIds}
+                              helperText={errors.permissionIds?.message}
+                              disabled={!selectedUserRole}
                             />
                           )}
                         />
                       )
                     }}
                   />
-                </Grid> */}
+                </Grid>
               </Grid>
             </div>
           </Grid>
