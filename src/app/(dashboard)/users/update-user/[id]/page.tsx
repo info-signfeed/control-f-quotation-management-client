@@ -1,44 +1,44 @@
+import { getEmployeeList } from '@/services/employee'
 import AddUser from '@/views/user/AddUser'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { api } from '@/services/api'
 
 interface Props {
   params: { id: string }
 }
 
 export default async function Page({ params }: Props) {
-  const { id } = params
+  try {
+    const { id } = params
 
-  const token = cookies().get('accessToken')?.value
-  if (!token) redirect('/login')
+    // Validate token
+    const token = cookies().get('accessToken')?.value
+    if (!token) redirect('/login')
 
-  // Fetch users list
-  const allUsersRes = await api.user.getAllUsers()
+    // Fetch employee list
+    const res = await getEmployeeList()
 
-  const users = !('error' in allUsersRes) ? allUsersRes.case ?? [] : []
-
-  const selectedUser = users.find((u: any) => Number(u.id) === Number(id)) || null
-
-  // Fetch district list
-   const cookieStore = cookies()
-    const cookieHeader = cookieStore.toString()
-
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_FRONTEND_URL}/api/districts`,
-    {
-      headers: { Cookie: cookieHeader },
-      cache: 'no-store'
+    // Validate API structure
+    if (!res || res.status !== 200 || !Array.isArray(res.data)) {
+      redirect('/error?msg=Invalid employee API response')
     }
-  )
 
-  const districtList = await res.json()
+    const users = res.data
 
-  return (
-    <AddUser
-      token={token}
-      userData={selectedUser}
-      districtList={districtList}
-    />
-  )
+    // Validate ID
+    const numericId = Number(id)
+    if (isNaN(numericId)) redirect('/employees')
+
+    // Find user
+    const selectedUser = users.find(u => u.id === numericId)
+
+    if (!selectedUser) {
+      redirect('/employees') // or /404
+    }
+
+    return <AddUser token={token} userData={selectedUser} />
+  } catch (error: any) {
+    console.error('Page Error:', error)
+    redirect('/error?msg=' + encodeURIComponent(error?.message ?? 'Something went wrong'))
+  }
 }

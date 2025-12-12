@@ -1,12 +1,18 @@
 import Grid from '@mui/material/Grid'
 
 import CreateCategoryPage from '@views/Category/CreateCategory'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 const createcategory = () => {
+  const token = cookies().get('accessToken')?.value
+  if (!token) {
+    redirect('/login')
+  }
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <CreateCategoryPage />
+        <CreateCategoryPage token={token} />
       </Grid>
     </Grid>
   )

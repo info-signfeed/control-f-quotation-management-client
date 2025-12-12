@@ -234,7 +234,7 @@ const ListUser: React.FC<ListUserProps> = ({ token }) => {
         enableColumnFilter: false
       },
 
-      columnHelper.accessor('fullName', {
+      columnHelper.accessor('firstName', {
         cell: info => info.getValue(),
         header: 'Name',
         enableColumnFilter: false
@@ -270,7 +270,7 @@ const ListUser: React.FC<ListUserProps> = ({ token }) => {
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('role', {
+      columnHelper.accessor('userRole', {
         cell: (info: CellContext<User, string>) => <MaxLengthCell value={info.getValue() || ''} maxLength={40} />,
         header: 'Role',
         enableColumnFilter: false

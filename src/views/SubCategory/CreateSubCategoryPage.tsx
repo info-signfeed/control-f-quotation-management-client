@@ -10,7 +10,7 @@ import { Controller, useForm } from 'react-hook-form'
 
 import CustomTextField from '@core/components/mui/TextField'
 
-export default function CreateSubCategoryPage() {
+export default function CreateSubCategoryPage({ token }: { token: string }) {
   const router = useRouter()
 
   const { control, handleSubmit } = useForm({
