@@ -52,30 +52,19 @@ import ChevronRight from '@menu/svg/ChevronRight'
 // Style Imports
 import styles from '@core/styles/table.module.css'
 import { COLORS } from '@/utils/colors'
+import { CategoryItem, ProductData } from '@/services/product'
 
 // ---------- Types ----------
 
-export interface Brand {
-  id: string | number
-  brandName: string
-  manufacturer: string
-  origin: string
-  focusCategory: string
-  products: string
-  headOffice: string
-  segment: string
-  isHidden?: boolean
-}
-
 interface ListProductProps {
-  data: Brand[]
+  data: ProductData[]
 }
 
 // ---------- Helpers ----------
 
-const columnHelper = createColumnHelper<Brand>()
+const columnHelper = createColumnHelper<ProductData>()
 
-const fuzzyFilter: FilterFn<Brand> = (row, columnId, value) => {
+const fuzzyFilter: FilterFn<ProductData> = (row, columnId, value) => {
   const search = String(value ?? '')
     .toLowerCase()
     .trim()
@@ -153,17 +142,18 @@ const Filter = ({ column, table }: { column: Column<any, unknown>; table: Table<
 }
 
 const ListProduct: React.FC<ListProductProps> = ({ data }) => {
+  console.log('data: ', data)
   const router = useRouter()
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState<string>('')
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [menuRowData, setMenuRowData] = useState<Brand | null>(null)
+  const [menuRowData, setMenuRowData] = useState<ProductData | null>(null)
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, brand: Brand) => {
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, product: ProductData) => {
     setAnchorEl(event.currentTarget)
-    setMenuRowData(brand)
+    setMenuRowData(product)
   }
 
   const handleMenuClose = () => {
@@ -171,80 +161,105 @@ const ListProduct: React.FC<ListProductProps> = ({ data }) => {
     setMenuRowData(null)
   }
 
-  const handleEdit = (brand: Brand) => {
-    router.push(`/brands/update-brand/${brand.id}`)
+  const handleEdit = (product: ProductData) => {
+    router.push(`/brands/update-brand/${product.id}`)
     handleMenuClose()
   }
 
-  const handleRemove = (brand: Brand) => {
-    console.log('Remove brand', brand.id)
-    toast.info(`Remove Brand: ${brand.brandName}`)
+  const handleRemove = (product: ProductData) => {
+    console.log('Remove product', product.id)
+    toast.info(`Remove ProductData: ${product.productType}`)
     handleMenuClose()
   }
 
-  const handleToggleHide = (brand: Brand) => {
-    console.log('Toggle hide brand', brand.id)
-    toast.info(`${brand.isHidden ? 'Unhide' : 'Hide'} Brand: ${brand.brandName}`)
+  const handleToggleHide = (product: ProductData) => {
+    console.log('Toggle hide product', product.id)
+    toast.info(`${product.isActive ? 'Unhide' : 'Hide'} ProductData: ${product.productType}`)
     handleMenuClose()
   }
 
-  const columns = useMemo<ColumnDef<Brand, any>[]>(
+  const columns = useMemo<ColumnDef<ProductData, any>[]>(
     () => [
       {
         id: 'select',
-        header: ({ table }: { table: Table<Brand> }) => (
+        header: ({ table }: { table: Table<ProductData> }) => (
           <Checkbox
             checked={table.getIsAllRowsSelected()}
             indeterminate={table.getIsSomeRowsSelected()}
             onChange={table.getToggleAllRowsSelectedHandler()}
           />
         ),
-        cell: ({ row }: { row: Row<Brand> }) => (
+        cell: ({ row }: { row: Row<ProductData> }) => (
           <Checkbox checked={row.getIsSelected()} onChange={row.getToggleSelectedHandler()} />
         ),
         enableSorting: false,
         enableColumnFilter: false
       },
 
-      columnHelper.accessor('brandName', {
-        header: 'Brand Name',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+      columnHelper.accessor('productType', {
+        header: 'Model',
+        cell: (info: CellContext<ProductData, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('manufacturer', {
-        header: 'Manufacturer',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+      columnHelper.accessor('categories', {
+        header: 'Category',
+        cell: (info: CellContext<ProductData, CategoryItem[]>) => {
+          const categories = info.getValue()
+          const names = categories.map(cat => cat.name).join(', ')
+
+          return <span className='font-medium'>{names}</span>
+        },
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('origin', {
-        header: 'Origin',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+      columnHelper.accessor('position', {
+        header: 'Position',
+        cell: (info: CellContext<ProductData, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('focusCategory', {
-        header: 'Focus Category',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+      columnHelper.accessor('pattern', {
+        header: 'Pattern',
+        cell: (info: CellContext<ProductData, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('products', {
-        header: 'Products',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+      columnHelper.accessor('typeSpecs', {
+        header: 'Type',
+        cell: (info: CellContext<ProductData, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('headOffice', {
-        header: 'Head Office',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+      columnHelper.accessor('loadIndex', {
+        header: 'Load Index',
+        cell: (info: CellContext<ProductData, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('segment', {
-        header: 'Segment',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+      columnHelper.accessor('brand', {
+        header: 'Brand',
+        cell: (info: CellContext<ProductData, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+      columnHelper.accessor('size', {
+        header: 'Size',
+        cell: (info: CellContext<ProductData, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+      columnHelper.accessor('unitsPerCarton', {
+        header: 'Units/Carton',
+        cell: (info: CellContext<ProductData, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+      columnHelper.accessor('weight', {
+        header: 'Weight (kg)',
+        cell: (info: CellContext<ProductData, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        enableColumnFilter: false
+      }),
+      columnHelper.accessor('countryOrigin', {
+        header: 'Country Origin',
+        cell: (info: CellContext<ProductData, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
@@ -252,7 +267,7 @@ const ListProduct: React.FC<ListProductProps> = ({ data }) => {
         header: 'Action',
         enableSorting: false,
         enableColumnFilter: false,
-        cell: ({ row }: { row: Row<Brand> }) => (
+        cell: ({ row }: { row: Row<ProductData> }) => (
           <IconButton
             size='small'
             onClick={e => handleMenuOpen(e, row.original)}
@@ -291,7 +306,7 @@ const ListProduct: React.FC<ListProductProps> = ({ data }) => {
 
   const selectedRows = table.getSelectedRowModel().rows.map(row => row.original)
 
-  const handleExportBrands = (brands: Brand[]) => {
+  const handleExportBrands = (brands: ProductData[]) => {
     try {
       if (!brands || brands.length === 0) {
         toast.error('No data available for export')
@@ -300,7 +315,7 @@ const ListProduct: React.FC<ListProductProps> = ({ data }) => {
       }
 
       console.log('Export brands', brands)
-      toast.success('Brand report exported')
+      toast.success('ProductData report exported')
     } catch (error) {
       console.error('Error exporting brands:', error)
       toast.error('Failed to export report')
@@ -308,7 +323,7 @@ const ListProduct: React.FC<ListProductProps> = ({ data }) => {
   }
 
   const handleImportBrands = () => {
-    toast.info('Import Brand clicked')
+    toast.info('Import ProductData clicked')
   }
 
   // @ts-ignore
@@ -371,7 +386,7 @@ const ListProduct: React.FC<ListProductProps> = ({ data }) => {
           <div className='overflow-x-auto'>
             <table className={styles.table}>
               <thead>
-                {table.getHeaderGroups().map((headerGroup: HeaderGroup<Brand>) => (
+                {table.getHeaderGroups().map((headerGroup: HeaderGroup<ProductData>) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map(header => (
                       <th key={header.id}>
@@ -409,9 +424,9 @@ const ListProduct: React.FC<ListProductProps> = ({ data }) => {
                 </tbody>
               ) : (
                 <tbody>
-                  {table.getRowModel().rows.map((row: Row<Brand>) => (
+                  {table.getRowModel().rows.map((row: Row<ProductData>) => (
                     <tr key={row.id}>
-                      {row.getVisibleCells().map((cell: Cell<Brand, unknown>) => (
+                      {row.getVisibleCells().map((cell: Cell<ProductData, unknown>) => (
                         <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                       ))}
                     </tr>
@@ -464,7 +479,7 @@ const ListProduct: React.FC<ListProductProps> = ({ data }) => {
           <ListItemIcon>
             <i className='tabler-eye-off' />
           </ListItemIcon>
-          {menuRowData?.isHidden ? 'Unhide' : 'Hide'}
+          {menuRowData?.isActive ? 'Unhide' : 'Hide'}
         </MenuItem>
       </Menu>
     </>

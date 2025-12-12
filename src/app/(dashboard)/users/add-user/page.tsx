@@ -25,7 +25,7 @@ const Page = async () => {
   // }
 
   // const districts = await res.json()
-  return <AddUser token={token} districtList={[]} />
+  return <AddUser token={token} />
 }
 
 export default Page

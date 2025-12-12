@@ -46,7 +46,6 @@ const genderList = [
 
 interface AddUserProps {
   token: string
-  districtList: { label: string; value: string }[]
   userData?: User | null
 }
 
@@ -56,7 +55,7 @@ interface PermissionType {
   isActive: boolean
 }
 
-const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
+const AddUser: React.FC<AddUserProps> = ({ token, userData }) => {
   const router = useRouter()
   const [isPasswordShown, setIsPasswordShown] = useState<boolean>(false)
   const [rolelist, setRoleList] = useState<RoleType[]>([])
@@ -95,8 +94,9 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
         userMobile: userData.mobile,
         gender: userData.gender,
         userRole: userData.userRole,
-        permissionIds: [],
-        file: null
+        permissionIds: userData?.permissionIds?.map(s => s?.id) || [],
+        employeeId: userData.employeeId,
+        file: userData.profilePic ? null : null // No file selected by default
       })
     }
   }, [userData, reset])
@@ -165,9 +165,6 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
     formData.append('userMobile', data.userMobile)
     formData.append('userDepartment', data.userDepartment)
     formData.append('employeeId', data.employeeId)
-    // formData.append('userRole', data.userRole)
-    // formData.append('permissionIds', data?.permissionIds)
-
     formData.append('gender', data.gender)
 
     // Role ID
@@ -181,12 +178,12 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
       formData.append('permissionIds', String(id))
     })
 
-    // // // Station IDs array for backend
-    // if (Array.isArray(data.permissionIds)) {
-    //   data.permissionIds.forEach(id => {
-    //     formData.append('permissionIds[]', String(id))
-    //   })
-    // }
+    //  permissions IDs array for backend
+    if (Array.isArray(data.permissionIds)) {
+      data.permissionIds.forEach(id => {
+        formData.append('permissionIds[]', String(id))
+      })
+    }
 
     // File
     if (data.file) {
@@ -195,11 +192,11 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
 
     // Add userId when updating
     if (userData && userData.id) {
-      formData.append('userId', String(userData.id))
+      formData.append('id', String(userData.id))
     }
 
     const url = userData
-      ? `${process.env.NEXT_PUBLIC_BASE_URL}/employee/create-employee`
+      ? `${process.env.NEXT_PUBLIC_BASE_URL}/employee/update-employee`
       : `${process.env.NEXT_PUBLIC_BASE_URL}/employee/create-employee`
 
     const response = await fetch(url, {
@@ -575,7 +572,7 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData, districtList }) => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} sm={6}>
                   <Controller
                     name='permissionIds'
                     control={control}

@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useCallback, useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -27,6 +27,8 @@ import {
 import { useForm, Controller } from 'react-hook-form'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { ProductData } from '@/services/product'
+import { SubCategoryData } from '@/services/sub-category'
 
 type FormValues = {
   product: string
@@ -49,8 +51,10 @@ const SUBCATEGORIES = [
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 
-export default function CreateCategoryPage() {
+export default function CreateCategoryPage({ token }: { token: string }) {
   const router = useRouter()
+  const [productList, setProductList] = React.useState<ProductData[]>([])
+  const [subCategoryList, setSubCategoryList] = React.useState<SubCategoryData[]>([])
 
   const {
     control,
@@ -65,7 +69,53 @@ export default function CreateCategoryPage() {
     }
   })
 
+  const fetchProducts = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/product/product-list`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const res = await response.json()
+        setProductList(res?.data)
+      } else {
+        console.error('Failed to fetch products:', response.statusText)
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    }
+  }, [token])
+
+  const fetchSubCategory = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/sub-category/sub-category-list?status=active`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const res = await response.json()
+        setSubCategoryList(res?.data)
+      } else {
+        console.error('Failed to fetch products:', response.statusText)
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    }
+  }, [token])
+
+  useEffect(() => {
+    fetchProducts()
+    fetchSubCategory()
+  }, [token, fetchProducts, fetchSubCategory])
+
   async function onSubmit(data: FormValues) {
+    console.log('data: ', data)
     try {
       // Replace URL and payload shape with your API
       // Example: POST to next API route (app/api/category/route.ts) or external API
@@ -94,7 +144,7 @@ export default function CreateCategoryPage() {
 
       // small delay so user sees toast (adjust/remove as desired)
       setTimeout(() => {
-        router.push('/categorylist') // change this route to your real category list route
+        router.push('/listcategory') // change this route to your real category list route
       }, 900)
     } catch (error: any) {
       console.error(error)
@@ -166,14 +216,14 @@ export default function CreateCategoryPage() {
                             return <span className='text-gray-400'>Type</span>
                           }
 
-                          const item = PRODUCTS.find(p => p.id === selected)
+                          const item = productList.find(p => Number(p.id) === Number(selected))
 
-                          return item?.label || selected
+                          return item?.productType || selected
                         }}
                       >
-                        {PRODUCTS.map(p => (
+                        {productList.map(p => (
                           <MenuItem key={p.id} value={p.id}>
-                            {p.label}
+                            {p.productType}
                           </MenuItem>
                         ))}
                       </Select>
@@ -220,15 +270,15 @@ export default function CreateCategoryPage() {
 
               {/* Sub-category */}
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth error={!!errors.subCategory}>
+                <FormControl fullWidth error={!!errors.product}>
                   <label className='text-sm text-[#1e2a55] mb-1 block'>
-                    Sub-category <span className='text-red-500'>*</span>
+                    Sub Category <span className='text-red-500'>*</span>
                   </label>
 
                   <Controller
                     name='subCategory'
                     control={control}
-                    rules={{ required: 'Sub-category is required' }}
+                    rules={{ required: 'Sub category is required' }}
                     render={({ field }) => (
                       <Select
                         displayEmpty
@@ -242,23 +292,25 @@ export default function CreateCategoryPage() {
                             alignItems: 'center'
                           }
                         }}
-                        renderValue={selected =>
-                          !selected ? (
-                            <span className='text-gray-400'>Sub category</span>
-                          ) : (
-                            SUBCATEGORIES.find(x => x.id === selected)?.label
-                          )
-                        }
+                        renderValue={selected => {
+                          if (!selected) {
+                            return <span className='text-gray-400'>sub category</span>
+                          }
+
+                          const item = subCategoryList.find(p => Number(p.id) === Number(selected))
+
+                          return item?.subCategory || selected
+                        }}
                       >
-                        {SUBCATEGORIES.map(s => (
-                          <MenuItem key={s.id} value={s.id}>
-                            {s.label}
+                        {subCategoryList.map(p => (
+                          <MenuItem key={p.id} value={p.id}>
+                            {p.subCategory}
                           </MenuItem>
                         ))}
                       </Select>
                     )}
                   />
-                  <FormHelperText>{errors.subCategory?.message}</FormHelperText>
+                  <FormHelperText>{errors.product?.message}</FormHelperText>
                 </FormControl>
               </Grid>
 

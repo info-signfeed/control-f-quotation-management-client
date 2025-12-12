@@ -52,30 +52,19 @@ import ChevronRight from '@menu/svg/ChevronRight'
 // Style Imports
 import styles from '@core/styles/table.module.css'
 import { COLORS } from '@/utils/colors'
+import { CategoryData } from '@/services/category'
 
 // ---------- Types ----------
 
-export interface Brand {
-  id: string | number
-  brandName: string
-  manufacturer: string
-  origin: string
-  focusCategory: string
-  products: string
-  headOffice: string
-  segment: string
-  isHidden?: boolean
-}
-
 interface ListCategoryProps {
-  data: Brand[]
+  data: CategoryData[]
 }
 
 // ---------- Helpers ----------
 
-const columnHelper = createColumnHelper<Brand>()
+const columnHelper = createColumnHelper<CategoryData>()
 
-const fuzzyFilter: FilterFn<Brand> = (row, columnId, value) => {
+const fuzzyFilter: FilterFn<CategoryData> = (row, columnId, value) => {
   const search = String(value ?? '')
     .toLowerCase()
     .trim()
@@ -159,11 +148,11 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
   const [globalFilter, setGlobalFilter] = useState<string>('')
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [menuRowData, setMenuRowData] = useState<Brand | null>(null)
+  const [menuRowData, setMenuRowData] = useState<CategoryData | null>(null)
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, brand: Brand) => {
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, category: CategoryData) => {
     setAnchorEl(event.currentTarget)
-    setMenuRowData(brand)
+    setMenuRowData(category)
   }
 
   const handleMenuClose = () => {
@@ -171,72 +160,86 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
     setMenuRowData(null)
   }
 
-  const handleEdit = (brand: Brand) => {
-    router.push(`/brands/update-brand/${brand.id}`)
+  const handleEdit = (category: CategoryData) => {
+    router.push(`/editcategory/${category.id}`)
     handleMenuClose()
   }
 
-  const handleRemove = (brand: Brand) => {
-    console.log('Remove brand', brand.id)
-    toast.info(`Remove Brand: ${brand.brandName}`)
+  const handleRemove = (category: CategoryData) => {
+    console.log('Remove category', category.id)
+    toast.info(`Remove Category: ${category.categoryName}`)
     handleMenuClose()
   }
 
-  const handleToggleHide = (brand: Brand) => {
-    console.log('Toggle hide brand', brand.id)
-    toast.info(`${brand.isHidden ? 'Unhide' : 'Hide'} Brand: ${brand.brandName}`)
+  const handleToggleHide = (category: CategoryData) => {
+    console.log('Toggle hide category', category.id)
+    toast.info(`${category.isActive ? 'Unhide' : 'Hide'} Category: ${category.categoryName}`)
     handleMenuClose()
   }
 
-  const columns = useMemo<ColumnDef<Brand, any>[]>(
+  const columns = useMemo<ColumnDef<CategoryData, any>[]>(
     () => [
       {
         id: 'select',
-        header: ({ table }: { table: Table<Brand> }) => (
+        header: ({ table }: { table: Table<CategoryData> }) => (
           <Checkbox
             checked={table.getIsAllRowsSelected()}
             indeterminate={table.getIsSomeRowsSelected()}
             onChange={table.getToggleAllRowsSelectedHandler()}
           />
         ),
-        cell: ({ row }: { row: Row<Brand> }) => (
+        cell: ({ row }: { row: Row<CategoryData> }) => (
           <Checkbox checked={row.getIsSelected()} onChange={row.getToggleSelectedHandler()} />
         ),
         enableSorting: false,
         enableColumnFilter: false
       },
 
-      columnHelper.accessor('brandName', {
+      columnHelper.accessor('productTypeName', {
         header: 'Product',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        cell: (info: CellContext<CategoryData, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('manufacturer', {
+      columnHelper.accessor('categoryName', {
         header: 'Category',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        cell: (info: CellContext<CategoryData, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('origin', {
+      columnHelper.accessor('subCategoryName', {
         header: 'Sub-Category',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        cell: (info: CellContext<CategoryData, string>) => <span className='font-medium'>{info.getValue()}</span>,
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('focusCategory', {
+      columnHelper.accessor('sizes', {
         header: 'Sizes',
-        cell: (info: CellContext<Brand, string>) => <span className='font-medium'>{info.getValue()}</span>,
+        cell: (info: CellContext<CategoryData, string[]>) => {
+          const sizes = info.getValue()
+
+          return (
+            <span
+              className='font-medium'
+              style={{
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+                display: 'block',
+                lineHeight: '1.4'
+              }}
+            >
+              {sizes.join(', ')}
+            </span>
+          )
+        },
         enableColumnFilter: false
       }),
-
-
 
       columnHelper.accessor('id', {
         header: 'Action',
         enableSorting: false,
         enableColumnFilter: false,
-        cell: ({ row }: { row: Row<Brand> }) => (
+        cell: ({ row }: { row: Row<CategoryData> }) => (
           <IconButton
             size='small'
             onClick={e => handleMenuOpen(e, row.original)}
@@ -275,24 +278,24 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
 
   // const selectedRows = table.getSelectedRowModel().rows.map(row => row.original)
 
-  const handleExportBrands = (brands: Brand[]) => {
+  const handleExportCategories = (categories: CategoryData[]) => {
     try {
-      if (!brands || brands.length === 0) {
+      if (!categories || categories.length === 0) {
         toast.error('No data available for export')
 
         return
       }
 
-      console.log('Export brands', brands)
-      toast.success('Brand report exported')
+      console.log('Export categories', categories)
+      toast.success('Category report exported')
     } catch (error) {
-      console.error('Error exporting brands:', error)
+      console.error('Error exporting categories:', error)
       toast.error('Failed to export report')
     }
   }
 
-  const handleImportBrands = () => {
-    toast.info('Import Brand clicked')
+  const handleImportCategories = () => {
+    toast.info('Import Category clicked')
   }
 
   // @ts-ignore
@@ -327,7 +330,7 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
                 </Button>
 
                 <Button
-                  onClick={() => router.push('/brand/add-brand')}
+                  onClick={() => router.push('/createcategory')}
                   variant='contained'
                   startIcon={<i className='tabler-plus' />}
                   sx={{
@@ -351,7 +354,7 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
           <div className='overflow-x-auto'>
             <table className={styles.table}>
               <thead>
-                {table.getHeaderGroups().map((headerGroup: HeaderGroup<Brand>) => (
+                {table.getHeaderGroups().map((headerGroup: HeaderGroup<CategoryData>) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map(header => (
                       <th key={header.id}>
@@ -389,9 +392,9 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
                 </tbody>
               ) : (
                 <tbody>
-                  {table.getRowModel().rows.map((row: Row<Brand>) => (
+                  {table.getRowModel().rows.map((row: Row<CategoryData>) => (
                     <tr key={row.id}>
-                      {row.getVisibleCells().map((cell: Cell<Brand, unknown>) => (
+                      {row.getVisibleCells().map((cell: Cell<CategoryData, unknown>) => (
                         <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                       ))}
                     </tr>
@@ -444,7 +447,7 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
           <ListItemIcon>
             <i className='tabler-eye-off' />
           </ListItemIcon>
-          {menuRowData?.isHidden ? 'Unhide' : 'Hide'}
+          {menuRowData?.isActive ? 'Unhide' : 'Hide'}
         </MenuItem>
       </Menu>
     </>
