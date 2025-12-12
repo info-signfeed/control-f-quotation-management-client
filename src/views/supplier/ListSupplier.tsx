@@ -176,7 +176,7 @@ const ListSupplier: React.FC<ListSupplierProps> = ({ token }) => {
   }
 
   const handleEdit = (supplier: Supplier) => {
-    router.push(`/suppliers/update-supplier/${supplier.id}`)
+    router.push(`/supplier/update-supplier/${supplier.id}`)
     handleMenuClose()
   }
 

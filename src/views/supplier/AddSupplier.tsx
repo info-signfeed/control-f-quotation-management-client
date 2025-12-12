@@ -22,12 +22,11 @@ interface SupplierFormValues {
   supplierCode: string
   email: string
   phone: string
-  origin: string
+  country: string
   whatsapp: string
   wechat: string
   brandSupplies: number[]
   address: string
-
   owner: string
   salesManager: string
   inception: Date | null
@@ -58,10 +57,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
   const [brandList, setBrandList] = useState<any[]>([])
 
   const countries = useCountries()
-
-  // useEffect(() => {
-  //   fetchDropdowns()
-  // }, [fetchDropdowns])
 
   useEffect(() => {
     fetchCategories()
@@ -114,12 +109,11 @@ const CreateSupplier = ({ token }: { token: string }) => {
       supplierCode: '',
       email: '',
       phone: '',
+      country: '',
       whatsapp: '',
       wechat: '',
       brandSupplies: [],
-
       address: '',
-
       owner: '',
       salesManager: '',
       inception: null,
@@ -128,14 +122,14 @@ const CreateSupplier = ({ token }: { token: string }) => {
       internationalOffices: '',
       turnover: '',
       exportPercent: '',
-
       paymentTerms: '',
       bankName: '',
       accountNo: '',
       ifsc: '',
       focusCategory: [],
-
-      production: [{ category: '', capacity: '' }]
+      production: [
+        { category: '', capacity: '' }
+      ]
     }
   })
 
@@ -150,13 +144,14 @@ const CreateSupplier = ({ token }: { token: string }) => {
       supplierCode: data.supplierCode,
       email: data.email,
       phoneNo: data.phone,
+      country: data.country,
       whatsappNo: data.whatsapp,
       wechatId: data.wechat,
-      brandSupplies: data.brandSupplies,
+      brandSupplies: data.brandSupplies.map(String),
       address: data.address,
       ownerName: data.owner,
       salesManagerName: data.salesManager,
-      inceptionDate: data.inception?.toISOString().split('T')[0],
+      inceptionDate: data.inception ? data.inception.toISOString().split('T')[0] : null,
       domesticOffices: Number(data.domesticOffices),
       internationalOffices: Number(data.internationalOffices),
       turnoverPerMonth: Number(data.turnover),
@@ -164,11 +159,13 @@ const CreateSupplier = ({ token }: { token: string }) => {
       paymentTerms: data.paymentTerms,
       bankName: data.bankName,
       accountNo: data.accountNo,
+      employeePax: data.employeePax,
       ifscCode: data.ifsc,
       productionDetails: data.production.map(p => ({
         category: p.category,
         productionCapacity: p.capacity
       })),
+
       isActive: true
     }
 
@@ -197,7 +194,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
 
   return (
     <div>
-      {/* Header */}
       <div className='flex my-5'>
         <h1 className='text-[#232F6F] text-xl font-semibold flex items-center gap-2'>
           <span
@@ -216,11 +212,9 @@ const CreateSupplier = ({ token }: { token: string }) => {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* ---------- Supplier Details ---------- */}
         <Card variant='outlined'>
           <CardContent>
             <Grid container spacing={4}>
-              {/* Supplier Name */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='supplierName'
@@ -239,7 +233,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Supplier Code */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='supplierCode'
@@ -258,7 +251,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Email */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='email'
@@ -277,7 +269,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Phone */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='phone'
@@ -296,17 +287,16 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Origin Country */}
               <Grid item xs={12} sm={6}>
                 <Controller
-                  name='origin'
+                  name='country'
                   control={control}
-                  render={({ field: { value, onChange } }) => (
+                  render={({ field }) => (
                     <CustomAutocomplete
                       fullWidth
                       options={countries}
-                      value={countries.find(i => i.name === value) || null}
-                      onChange={(e, val) => onChange(val?.name || '')}
+                      value={countries.find(c => c.name === field.value) || null}
+                      onChange={(e, val) => field.onChange(val?.name || '')}
                       getOptionLabel={o => o?.name || ''}
                       renderInput={params => (
                         <CustomTextField {...params} label='Origin' placeholder='Select country' />
@@ -316,7 +306,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* WhatsApp */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='whatsapp'
@@ -327,7 +316,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* WeChat */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='wechat'
@@ -338,7 +326,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Brand Supplies */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='brandSupplies'
@@ -359,7 +346,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Address */}
               <Grid item xs={12}>
                 <Controller
                   name='address'
@@ -380,13 +366,11 @@ const CreateSupplier = ({ token }: { token: string }) => {
           </CardContent>
         </Card>
 
-        {/* ---------- BUSINESS DETAILS ---------- */}
         <div className='mt-10 mb-2 text-[#232F6F] font-semibold'>Business Details</div>
 
         <Card variant='outlined'>
           <CardContent>
             <Grid container spacing={4}>
-              {/* Owner */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='owner'
@@ -398,7 +382,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Sales Manager */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='salesManager'
@@ -410,7 +393,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Inception */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='inception'
@@ -457,7 +439,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Employee Pax */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='employeePax'
@@ -468,7 +449,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Domestic Offices */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='domesticOffices'
@@ -484,7 +464,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* International Offices */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='internationalOffices'
@@ -500,7 +479,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Turnover */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='turnover'
@@ -511,7 +489,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Export % */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='exportPercent'
@@ -522,7 +499,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Payment Terms */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='paymentTerms'
@@ -542,7 +518,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Bank Name */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='bankName'
@@ -553,7 +528,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Account Number */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='accountNo'
@@ -564,7 +538,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* IFSC */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='ifsc'
@@ -578,7 +551,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
           </CardContent>
         </Card>
 
-        {/* LABEL */}
         <div className='text-[#232F6F] font-semibold mt-5 mb-1 flex items-center gap-2'>
           Production capacity
           <span className='flex items-center justify-center text-gray-400 cursor-help'>
@@ -591,31 +563,11 @@ const CreateSupplier = ({ token }: { token: string }) => {
           </span>
         </div>
 
-        {/* BOX CONTAINER */}
         <Card variant='outlined' className='p-4'>
           {fields.map((item, index) => (
             <div key={item.id} className='mb-4 last:mb-0'>
-              {/* ROW CONTAINER */}
               <div className='flex items-center gap-4'>
-                {/* Category */}
                 <div className='flex-1'>
-                  {/* <Controller
-                    name='focusCategory'
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <CustomAutocomplete
-                        multiple
-                        fullWidth
-                        options={focusCategories}
-                        value={focusCategories.filter(i => value.includes(i.id))}
-                        onChange={(e, val) => onChange(val.map(i => i.id))}
-                        getOptionLabel={o => o?.name || ''}
-                        renderInput={params => (
-                          <CustomTextField {...params} label='Focus Category' placeholder='Select focus category' />
-                        )}
-                      />
-                    )}
-                  /> */}
                   <Controller
                     name={`production.${index}.category`}
                     control={control}
@@ -634,7 +586,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                   />
                 </div>
 
-                {/* Capacity */}
                 <div className='flex-1'>
                   <Controller
                     name={`production.${index}.capacity`}
@@ -650,7 +601,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
                   />
                 </div>
 
-                {/* icons */}
                 <div className='flex items-center mt-4'>
                   {index === 0 ? (
                     <IconButton
@@ -682,7 +632,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
             </div>
           ))}
 
-          {/* ADD CATEGORY LINK */}
           <div className='mt-2' style={{ boxShadow: 'none' }}>
             <Button
               variant='text'
@@ -695,7 +644,6 @@ const CreateSupplier = ({ token }: { token: string }) => {
           </div>
         </Card>
 
-        {/* ---------- ACTION BUTTONS ---------- */}
         <div className='flex justify-end gap-4 mt-6'>
           <Button variant='outlined' onClick={() => reset()}>
             Cancel
@@ -707,13 +655,8 @@ const CreateSupplier = ({ token }: { token: string }) => {
         <AddCategory
           open={showAddCategory}
           onClose={() => setShowAddCategory(false)}
-          token={''}
-          onSuccess={function (): void {
-            throw new Error('Function not implemented.')
-          }} // token={abhi}
-          // onSuccess={() => {
-          //   fetchCaseTypes()
-          // }}
+          token={token}
+          onSuccess={() => fetchCategories()}
         />
       </form>
     </div>

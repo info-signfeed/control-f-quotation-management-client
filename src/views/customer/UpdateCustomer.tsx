@@ -46,7 +46,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
     formState: { errors }
   } = useForm<CustomerFormValues>()
 
-  // ---------------------- Fetch customer details ----------------------
   useEffect(() => {
     if (customerId) fetchCustomerDetails()
   }, [customerId])
@@ -90,11 +89,10 @@ const UpdateCustomer = ({ token }: { token: string }) => {
     }
   }
 
-  // ---------------------- Submit update API ----------------------
   const onSubmit = async (data: CustomerFormValues) => {
     try {
       const payload = {
-        customerId: Number(customerId),
+        id: Number(customerId),
 
         customerName: data.customerName,
         customerCode: data.customerCode,
@@ -115,9 +113,7 @@ const UpdateCustomer = ({ token }: { token: string }) => {
         salesTeamSize: Number(data.salesTeamPax) || 0,
         employeeCount: Number(data.employeePax) || 0,
         importVolumePerMonth: Number(data.importVolume) || 0,
-
         importingSince: data.importingSince ? data.importingSince.toISOString().split('T')[0] : null,
-
         isActive: true
       }
 
@@ -146,19 +142,26 @@ const UpdateCustomer = ({ token }: { token: string }) => {
   return (
     <div>
       <div className='flex my-5'>
-        {/* <h1 className='text-[#232F6F] text-xl font-semibold flex items-center gap-2'>
-          <span className='cursor-pointer' onClick={() => router.push('/customer/list-customer')}>
-            ⬅
+         <h1 className='text-[#232F6F] text-xl font-semibold flex items-center gap-2'>
+          <span
+            className='cursor-pointer flex items-center justify-center'
+            onClick={() => router.push('/customer/list-customer')}
+          >
+            <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+              <path
+                d='M9.97149 18.1108C10.0939 18.2317 10.1921 18.3776 10.2602 18.5396C10.3284 18.7017 10.365 18.8766 10.3679 19.054C10.3709 19.2314 10.3401 19.4076 10.2774 19.5721C10.2148 19.7366 10.1215 19.886 10.0031 20.0115C9.88479 20.1369 9.74383 20.2358 9.58865 20.3023C9.43347 20.3687 9.26726 20.4014 9.09993 20.3982C8.9326 20.3951 8.76758 20.3563 8.61471 20.2841C8.46184 20.2119 8.32426 20.1078 8.21017 19.978L1.56368 12.932C1.3303 12.6843 1.19922 12.3485 1.19922 11.9984C1.19922 11.6483 1.3303 11.3126 1.56368 11.0649L8.21017 4.01892C8.32426 3.88912 8.46184 3.78501 8.61471 3.71281C8.76758 3.6406 8.9326 3.60177 9.09993 3.59864C9.26726 3.59551 9.43347 3.62814 9.58865 3.69459C9.74382 3.76103 9.88479 3.85993 10.0031 3.98538C10.1215 4.11083 10.2148 4.26027 10.2774 4.42477C10.3401 4.58927 10.3709 4.76547 10.3679 4.94285C10.365 5.12024 10.3284 5.29518 10.2602 5.45724C10.1921 5.61929 10.0939 5.76514 9.97149 5.88609L5.45188 10.6773L21.553 10.6773C21.8835 10.6773 22.2005 10.8165 22.4342 11.0643C22.6679 11.312 22.7992 11.6481 22.7992 11.9984C22.7992 12.3488 22.6679 12.6848 22.4342 12.9326C22.2005 13.1804 21.8835 13.3195 21.553 13.3195L5.45188 13.3196L9.97149 18.1108Z'
+                fill='#232F6F'
+              />
+            </svg>
           </span>
           Update Customer
-        </h1> */}
+        </h1>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Card variant='outlined'>
           <CardContent>
             <Grid container spacing={4}>
-              {/* Customer Name */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='customerName'
@@ -170,7 +173,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Customer Code */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='customerCode'
@@ -182,19 +184,15 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Email */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='email'
                   control={control}
                   rules={{ required: 'Email is required' }}
-                  render={({ field }) => (
-                    <CustomTextField {...field} label='Email*' fullWidth error={!!errors.email} />
-                  )}
+                  render={({ field }) => <CustomTextField {...field} label='Email*' fullWidth error={!!errors.email} />}
                 />
               </Grid>
 
-              {/* Phone */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='phone'
@@ -205,7 +203,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Country */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='country'
@@ -223,7 +220,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* WhatsApp */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='whatsapp'
@@ -232,27 +228,22 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Address */}
               <Grid item xs={12}>
                 <Controller
                   name='address'
                   control={control}
-                  render={({ field }) => (
-                    <CustomTextField {...field} label='Address' rows={2} multiline fullWidth />
-                  )}
+                  render={({ field }) => <CustomTextField {...field} label='Address' rows={2} multiline fullWidth />}
                 />
               </Grid>
             </Grid>
           </CardContent>
         </Card>
 
-        {/* BUSINESS DETAILS */}
         <h2 className='mt-10 text-[#232F6F] font-semibold'>Business Details</h2>
 
         <Card variant='outlined' className='mt-2'>
           <CardContent>
             <Grid container spacing={4}>
-              {/* Owner */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='owner'
@@ -261,7 +252,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Sales Manager */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='salesManager'
@@ -270,7 +260,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Inception Date */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='inception'
@@ -285,7 +274,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Domestic */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='domesticOffices'
@@ -294,7 +282,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* International */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='internationalOffices'
@@ -303,7 +290,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Turnover */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='turnover'
@@ -312,7 +298,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Sales Team */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='salesTeamPax'
@@ -321,7 +306,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Employee Pax */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='employeePax'
@@ -330,7 +314,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Import Volume */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='importVolume'
@@ -339,7 +322,6 @@ const UpdateCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* Importing Since */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='importingSince'

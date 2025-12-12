@@ -4,8 +4,6 @@ import { redirect } from 'next/navigation'
 import { Grid } from '@mui/material'
 import AddCustomer from '@/views/customer/AddCustomer'
 
-// import CreateCases from '@/views/cases/CreateCase'
-
 const AddCustomerPage = async () => {
   const token = cookies().get('accessToken')?.value
 
