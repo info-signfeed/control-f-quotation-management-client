@@ -463,13 +463,14 @@ const ListProduct: React.FC<ListProductProps> = ({ data }) => {
           horizontal: 'right'
         }}
       >
-        <MenuItem onClick={() => menuRowData && handleEdit(menuRowData)}>
+        {/* <MenuItem onClick={() => menuRowData && handleEdit(menuRowData)}> */}
+        <MenuItem>
           <ListItemIcon>
             <i className='tabler-edit' />
           </ListItemIcon>
           Edit
         </MenuItem>
-        <MenuItem onClick={() => menuRowData && handleRemove(menuRowData)}>
+        {/* <MenuItem onClick={() => menuRowData && handleRemove(menuRowData)}>
           <ListItemIcon>
             <i className='tabler-trash' />
           </ListItemIcon>
@@ -480,7 +481,7 @@ const ListProduct: React.FC<ListProductProps> = ({ data }) => {
             <i className='tabler-eye-off' />
           </ListItemIcon>
           {menuRowData?.isActive ? 'Unhide' : 'Hide'}
-        </MenuItem>
+        </MenuItem> */}
       </Menu>
     </>
   )

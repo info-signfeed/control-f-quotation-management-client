@@ -58,6 +58,7 @@ import { CategoryData } from '@/services/category'
 
 interface ListCategoryProps {
   data: CategoryData[]
+  token: string | null
 }
 
 // ---------- Helpers ----------
@@ -141,7 +142,7 @@ const Filter = ({ column, table }: { column: Column<any, unknown>; table: Table<
   )
 }
 
-const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
+const ListCategory: React.FC<ListCategoryProps> = ({ data, token }) => {
   const router = useRouter()
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -149,6 +150,8 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [menuRowData, setMenuRowData] = useState<CategoryData | null>(null)
+  console.log('menuRowData: ', menuRowData)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, category: CategoryData) => {
     setAnchorEl(event.currentTarget)
@@ -166,15 +169,38 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
   }
 
   const handleRemove = (category: CategoryData) => {
-    console.log('Remove category', category.id)
-    toast.info(`Remove Category: ${category.categoryName}`)
+    setIsDeleteModalOpen(true)
     handleMenuClose()
   }
 
   const handleToggleHide = (category: CategoryData) => {
     console.log('Toggle hide category', category.id)
-    toast.info(`${category.isActive ? 'Unhide' : 'Hide'} Category: ${category.categoryName}`)
     handleMenuClose()
+  }
+
+  const deleteSubCategory = async (id: number) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/category/delete-category?id=${id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const result = await res.json()
+
+      if (result.status === 200) {
+        toast.success('Sub category deleted successfully!')
+        router.push('/listcategory')
+        router.refresh()
+      } else {
+        toast.error(result.message || 'Failed to delete sub category')
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Something went wrong')
+    }
   }
 
   const columns = useMemo<ColumnDef<CategoryData, any>[]>(
@@ -404,6 +430,37 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
             </table>
           </div>
 
+          {/* Delete Confirmation Modal */}
+          {isDeleteModalOpen && (
+            <div className='fixed inset-0 bg-black/30 flex items-center justify-center z-50'>
+              <div className='bg-white rounded-xl p-6 w-80 text-center'>
+                <h3 className='text-2xl font-bold text-red-600'>Delete</h3>
+                <p className='mt-2 text-base font-medium text-[#2F2F2F]'>
+                  Are you sure you want to delete the Sub Category?
+                </p>
+
+                <div className='flex justify-center gap-3 mt-6'>
+                  <button
+                    className='bg-white hover:cursor-pointer px-5 py-2 rounded-full border border-[#2F2F2F]'
+                    onClick={() => setIsDeleteModalOpen(false)}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      deleteSubCategory(menuRowData?.id!)
+                      setIsDeleteModalOpen(false)
+                    }}
+                    className='bg-red-600 text-white hover:cursor-pointer px-5 py-2 rounded-full'
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Pagination */}
           <TablePagination
             component={() => <TablePaginationComponent table={table} />}
@@ -437,18 +494,18 @@ const ListCategory: React.FC<ListCategoryProps> = ({ data }) => {
           </ListItemIcon>
           Edit
         </MenuItem>
-        <MenuItem onClick={() => menuRowData && handleRemove(menuRowData)}>
+        {/* <MenuItem onClick={() => menuRowData && handleRemove(menuRowData)}>
           <ListItemIcon>
             <i className='tabler-trash' />
           </ListItemIcon>
           Remove
-        </MenuItem>
-        <MenuItem onClick={() => menuRowData && handleToggleHide(menuRowData)}>
+        </MenuItem> */}
+        {/* <MenuItem onClick={() => menuRowData && handleToggleHide(menuRowData)}>
           <ListItemIcon>
             <i className='tabler-eye-off' />
           </ListItemIcon>
           {menuRowData?.isActive ? 'Unhide' : 'Hide'}
-        </MenuItem>
+        </MenuItem> */}
       </Menu>
     </>
   )

@@ -1,4 +1,4 @@
-import { getEmployeeList } from '@/services/employee'
+import { getEmployee } from '@/services/employee'
 import AddUser from '@/views/user/AddUser'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -16,27 +16,22 @@ export default async function Page({ params }: Props) {
     if (!token) redirect('/login')
 
     // Fetch employee list
-    const res = await getEmployeeList()
+    const res = await getEmployee(Number(id))
+    console.log('res: ', res)
 
     // Validate API structure
-    if (!res || res.status !== 200 || !Array.isArray(res.data)) {
+    if (!res || res.status !== 200 || !res.data) {
       redirect('/error?msg=Invalid employee API response')
     }
 
-    const users = res.data
+    const data = res.data
+    console.log('data: ', data)
 
     // Validate ID
     const numericId = Number(id)
     if (isNaN(numericId)) redirect('/employees')
 
-    // Find user
-    const selectedUser = users.find(u => u.id === numericId)
-
-    if (!selectedUser) {
-      redirect('/employees') // or /404
-    }
-
-    return <AddUser token={token} userData={selectedUser} />
+    return <AddUser token={token} userData={data} />
   } catch (error: any) {
     console.error('Page Error:', error)
     redirect('/error?msg=' + encodeURIComponent(error?.message ?? 'Something went wrong'))

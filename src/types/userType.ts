@@ -9,8 +9,8 @@ export interface User {
   lastName: string | null
   username: string
   password: string
-  email: string
-  mobile: string
+  userEmail: string
+  userMobile: string
   department: string | null
   userRole: number
   employeeId: string
