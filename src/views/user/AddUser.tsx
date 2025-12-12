@@ -56,9 +56,11 @@ interface PermissionType {
 }
 
 const AddUser: React.FC<AddUserProps> = ({ token, userData }) => {
+  console.log('userData: ', userData)
   const router = useRouter()
   const [isPasswordShown, setIsPasswordShown] = useState<boolean>(false)
   const [rolelist, setRoleList] = useState<RoleType[]>([])
+  console.log('rolelist: ', rolelist)
   const [permissionList, setPermissionList] = useState<PermissionType[]>([])
   // const [stations, setStations] = useState<StationType[]>([])
 
@@ -90,11 +92,12 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData }) => {
         userPassword: '',
         firstName: userData.firstName,
         // lastName: userData.lastName,
-        userEmail: userData.email,
-        userMobile: userData.mobile,
+        userEmail: userData.userEmail,
+        userMobile: userData.userMobile,
         gender: userData.gender,
         userRole: userData.userRole,
-        permissionIds: userData?.permissionIds?.map(s => s?.id) || [],
+
+        permissionIds: userData.permission?.map(p => p.permissionId) || [],
         employeeId: userData.employeeId,
         file: userData.profilePic ? null : null // No file selected by default
       })
@@ -539,8 +542,8 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData }) => {
                     control={control}
                     rules={{ required: 'This field is required.' }}
                     render={({ field: { value, onChange } }) => {
-                      // Find the selected object by ID for Autocomplete display
-                      const selectedRole = rolelist?.find(role => role?.id === value) || null
+                      // When value = 2 (from backend), this will find the matching object
+                      const selectedRole = rolelist?.find(role => Number(role?.id) === Number(value)) || null
 
                       return (
                         <CustomAutocomplete
@@ -548,23 +551,17 @@ const AddUser: React.FC<AddUserProps> = ({ token, userData }) => {
                           options={rolelist}
                           id='autocomplete-controlled'
                           value={selectedRole}
-                          onChange={(e: any, newValue: any) => {
-                            onChange(newValue ? newValue.id : null)
-                          }}
-                          isOptionEqualToValue={(option, val) => option.id === val.id}
-                          getOptionLabel={(option: any) =>
-                            option.roleName
-                              ? option.roleName.charAt(0).toUpperCase() + option.roleName.slice(1).toLowerCase()
-                              : ''
-                          }
-                          renderTags={tagValue => <span>{tagValue.length} selected</span>}
+                          onChange={(e, newValue) => onChange(newValue ? newValue.id : null)}
+                          // IMPORTANT FIX
+                          isOptionEqualToValue={(option, val) => option.id === (val?.id ?? val)}
+                          getOptionLabel={option => option.roleName}
                           renderInput={params => (
                             <CustomTextField
                               {...params}
                               placeholder='Select Role'
                               label='Role*'
                               error={!!errors.userRole}
-                              helperText={errors.userRole ? errors.userRole.message : ''}
+                              helperText={errors.userRole?.message}
                             />
                           )}
                         />

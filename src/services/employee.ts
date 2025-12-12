@@ -29,8 +29,18 @@ export interface EmployeeListResponse {
   status: number
   data: Employee[]
 }
+// API Response interface
+export interface EmployeeResponse {
+  message: string
+  status: number
+  data: Employee
+}
 
 // GET employee list
 export function getEmployeeList() {
   return apiGet<EmployeeListResponse>('/employee/employee-list')
+}
+
+export function getEmployee(id: number) {
+  return apiGet<EmployeeResponse>(`/employee/employee-detail-list?id=${id}`)
 }

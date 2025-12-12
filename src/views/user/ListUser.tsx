@@ -252,13 +252,13 @@ const ListUser: React.FC<ListUserProps> = ({ token }) => {
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('email', {
+      columnHelper.accessor('userEmail', {
         cell: (info: CellContext<User, string>) => <span className='font-medium'>{info.getValue()}</span>,
         header: 'Email',
         enableColumnFilter: false
       }),
 
-      columnHelper.accessor('mobile', {
+      columnHelper.accessor('userMobile', {
         cell: (info: CellContext<User, string>) => <span className='font-medium'>{info.getValue() || '-'}</span>,
         header: 'Mobile',
         enableColumnFilter: false
