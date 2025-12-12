@@ -15,6 +15,7 @@ import CustomTextField from '@core/components/mui/TextField'
 import CustomAutocomplete from '@core/components/mui/Autocomplete'
 import AppReactDatepicker from '@/libs/AppReactDatepicker'
 import AddCategory from '@/components/model/AddCategory'
+import { useCountries } from '@/types/useCountries'
 
 interface SupplierFormValues {
   supplierName: string
@@ -51,37 +52,31 @@ const CreateSupplier = ({ token }: { token: string }) => {
   const router = useRouter()
   const API_URL = process.env.NEXT_PUBLIC_BASE_URL
 
-  const [countryList, setCountryList] = useState<any[]>([])
   const [paymentTermsList, setPaymentTermsList] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [bankList, setBankList] = useState<any[]>([])
   const [showAddCategory, setShowAddCategory] = useState(false)
-
-  // ---------- Fetch dropdowns ----------
-  const fetchDropdowns = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_URL}/supplier/dropdowns`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-
-      const data = await res.json()
-
-      if (res.ok) {
-        setCountryList(data.countries || [])
-        setPaymentTermsList(data.paymentTerms || [])
-        setCategories(data.categories || [])
-        setBankList(data.banks || [])
-      } else {
-        toast.error('Failed to load dropdown data')
-      }
-    } catch (e) {
-      toast.error('Something went wrong fetching dropdowns')
-    }
-  }, [API_URL, token])
+   const [focusCategories, setFocusCategories] = useState<any[]>([])
+  const countries = useCountries()
 
   useEffect(() => {
     fetchDropdowns()
   }, [fetchDropdowns])
+
+
+   const fetchCategories = async () => {
+    const res = await fetch(`${API_URL}/category/category-list`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const result = await res.json()
+
+    const formatted = (result.data || []).map((c: any) => ({
+      id: c.id,
+      name: c.categoryName
+    }))
+
+    setFocusCategories(formatted)
+  }
 
   // ---------- FORM SETUP ----------
   const {
@@ -257,8 +252,8 @@ const CreateSupplier = ({ token }: { token: string }) => {
                   render={({ field: { value, onChange } }) => (
                     <CustomAutocomplete
                       fullWidth
-                      options={countryList}
-                      value={countryList.find(i => i.name === value) || null}
+                      options={countries}
+                      value={countries.find(i => i.name === value) || null}
                       onChange={(e, val) => onChange(val?.name || '')}
                       getOptionLabel={o => o?.name || ''}
                       renderInput={params => (

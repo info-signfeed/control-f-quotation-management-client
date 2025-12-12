@@ -4,19 +4,17 @@ import { redirect } from 'next/navigation'
 import { Grid } from '@mui/material'
 import CreateSupplier from '@/views/supplier/AddSupplier'
 
-// import CreateCases from '@/views/cases/CreateCase'
-
 const AddSupplierPage = async () => {
-//   const token = cookies().get('accessToken')?.value
+  const token = cookies().get('accessToken')?.value
 
-//   if (!token) {
-//     redirect('/login')
-//   }
+  if (!token) {
+    redirect('/login')
+  }
 
   return (
     <Grid container>
       <Grid item xs={12}>
-      <CreateSupplier token={''}/>
+      <CreateSupplier token={token!}/>
       </Grid>
     </Grid>
   )

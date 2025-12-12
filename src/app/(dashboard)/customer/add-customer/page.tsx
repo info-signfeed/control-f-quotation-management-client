@@ -7,16 +7,16 @@ import AddCustomer from '@/views/customer/AddCustomer'
 // import CreateCases from '@/views/cases/CreateCase'
 
 const AddCustomerPage = async () => {
-//   const token = cookies().get('accessToken')?.value
+  const token = cookies().get('accessToken')?.value
 
-//   if (!token) {
-//     redirect('/login')
-//   }
+  if (!token) {
+    redirect('/login')
+  }
 
   return (
     <Grid container>
       <Grid item xs={12}>
-     <AddCustomer token={''}/>
+        <AddCustomer token={token!} />
       </Grid>
     </Grid>
   )
