@@ -148,7 +148,6 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ token }) => {
     if (token) fetchData()
   }, [fetchData])
 
-  // ---------- Action Handlers ----------
   const handleMenuOpen = (event: any, row: Customer) => {
     setAnchorEl(event.currentTarget)
     setMenuRowData(row)
@@ -193,14 +192,11 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ token }) => {
 
   handleMenuClose();
 };
-
-
   const handleToggleHide = (customer: Customer) => {
     toast.info(`${customer.isHidden ? 'Unhide' : 'Hide'}: ${customer.customerName}`)
     handleMenuClose()
   }
 
-  // ---------------- Columns ----------------
 
   const columns = useMemo<ColumnDef<Customer, any>[]>(
     () => [

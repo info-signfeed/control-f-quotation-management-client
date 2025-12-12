@@ -11,7 +11,6 @@ import CustomAutocomplete from '@core/components/mui/Autocomplete'
 import AppReactDatepicker from '@/libs/AppReactDatepicker'
 import { useCountries } from '@/types/useCountries'
 
-// ---------------- FORM TYPES ----------------
 interface CustomerFormValues {
   customerName: string
   customerCode: string
@@ -302,19 +301,6 @@ const AddCustomer = ({ token }: { token: string }) => {
                 />
               </Grid>
 
-              {/* <Grid item xs={12} sm={6}>
-                <Controller
-                  name='inception'
-                  control={control}
-                  render={({ field }) => (
-                    <AppReactDatepicker
-                      selected={field.value}
-                      onChange={field.onChange}
-                      customInput={<CustomTextField fullWidth label='Inception*' />}
-                    />
-                  )}
-                />
-              </Grid> */}
               <Grid item xs={12} sm={6}>
                 <Controller
                   name='inception'

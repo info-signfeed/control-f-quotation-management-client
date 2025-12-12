@@ -12,7 +12,7 @@ const ListSupplierPage = () => {
   return (
     <Grid container>
       <Grid item xs={12}>
-        <ListSupplier token={token!} data={[]} />
+        <ListSupplier token={token!}/>
       </Grid>
     </Grid>
   )

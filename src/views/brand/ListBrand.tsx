@@ -37,7 +37,6 @@ import type { TextFieldProps } from '@mui/material/TextField'
 import CustomTextField from '@core/components/mui/TextField'
 import TablePaginationComponent from '../../components/TablePaginationComponent'
 
-import ChevronRight from '@menu/svg/ChevronRight'
 import styles from '@core/styles/table.module.css'
 import { COLORS } from '@/utils/colors'
 
@@ -59,8 +58,6 @@ interface ListBrandProps {
   token: string
 }
 
-// ---------------- Helpers ----------------
-
 const columnHelper = createColumnHelper<Brand>()
 
 const fuzzyFilter: FilterFn<Brand> = (row, columnId, value) => {
@@ -71,7 +68,6 @@ const fuzzyFilter: FilterFn<Brand> = (row, columnId, value) => {
   return rankItem(cellValue, search).passed
 }
 
-// Debounced input for global search
 const DebouncedInput = ({
   value: initialValue,
   onChange,
@@ -110,7 +106,6 @@ const ListBrand: React.FC<ListBrandProps> = ({ token }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [menuRowData, setMenuRowData] = useState<Brand | null>(null)
 
-  // ---------- Fetch Data ----------
   const fetchData = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/brand/brand-list?status=active`, {
@@ -134,8 +129,6 @@ const ListBrand: React.FC<ListBrandProps> = ({ token }) => {
         origin: item.origin,
         headOffice: item.headOffice,
         segment: item.segment,
-
-        // FIX: convert arrays → comma list
         focusCategory: item.focusCategory?.map((fc: any) => fc.name).join(', ') || '',
         products: item.products?.map((p: any) => p.name).join(', ') || '',
 
@@ -152,7 +145,6 @@ const ListBrand: React.FC<ListBrandProps> = ({ token }) => {
     if (token) fetchData()
   }, [fetchData, token])
 
-  // ---------- Table Actions ----------
   const handleMenuOpen = (event: any, brand: Brand) => {
     setAnchorEl(event.currentTarget)
     setMenuRowData(brand)
@@ -194,7 +186,6 @@ const ListBrand: React.FC<ListBrandProps> = ({ token }) => {
     handleMenuClose()
   }
 
-  // ---------- Table Columns ----------
   const columns = useMemo<ColumnDef<Brand, any>[]>(
     () => [
       {
@@ -363,7 +354,6 @@ const ListBrand: React.FC<ListBrandProps> = ({ token }) => {
         </Card>
       </div>
 
-      {/* ACTION POPUP */}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItem onClick={() => menuRowData && handleEdit(menuRowData)}>
           <ListItemIcon>
