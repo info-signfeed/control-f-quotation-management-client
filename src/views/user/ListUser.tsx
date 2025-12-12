@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -65,7 +65,8 @@ import { COLORS } from '@/utils/colors'
 // import StationNameMenuCell from '@/components/StationNameMenuCell'
 
 interface ListUserProps {
-  data: User[]
+  // data: User[]
+  token: string
 }
 
 // Column Definitions
@@ -161,9 +162,11 @@ const MaxLengthCell = ({ value, maxLength }: { value: string; maxLength: number 
   return <span title={value}>{value.length > maxLength ? `${value.substring(0, maxLength)}...` : value}</span>
 }
 
-const ListUser: React.FC<ListUserProps> = ({ data }) => {
+const ListUser: React.FC<ListUserProps> = ({ token }) => {
   const router = useRouter()
   // States
+  const [data, setData] = useState<User[]>([])
+  console.log('data: ', data)
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
 
@@ -187,6 +190,31 @@ const ListUser: React.FC<ListUserProps> = ({ data }) => {
     handleMenuClose()
   }
 
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/employee/employee-list`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const res = await response.json()
+        console.log('res: ', res)
+        setData(res?.data)
+      } else {
+        console.error('Failed to fetch roles:', response.statusText)
+      }
+    } catch (error) {
+      console.error('Error fetching user roles:', error)
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (!token) return
+    fetchData()
+  }, [fetchData, token])
   // Hooks
   const columns = useMemo<ColumnDef<User, any>[]>(
     () => [

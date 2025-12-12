@@ -3,23 +3,23 @@ export type StationData = {
   stationName: string
 } | null
 
-export type User = {
+export interface User {
   id: number
+  firstName: string
+  lastName: string | null
   username: string
-  employeeId: string
   password: string
-  fullName: string
   email: string
   mobile: string
-  gender: string
-  profileUrl: string
-  district: string
-  roleId: number
-  role: string
-  companyId: number
-  createdBy: string
-  isActive: boolean
+  department: string | null
+  userRole: number
+  employeeId: string
+  gender: 'male' | 'female' | 'other' | string
+  profilePic: string | null
   createdOn: string
-  updatedOn: string
-  stationData: StationData[]
+  createdBy: string
+  updatedOn: string | null
+  updatedBy: string | null
+  isActive: boolean
+  companyId: number
 }
