@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -62,7 +62,7 @@ export interface Supplier {
 }
 
 interface ListSupplierProps {
-  data: Supplier[]
+  token: string
 }
 
 // ---------- Helpers ----------
@@ -109,14 +109,61 @@ const DebouncedInput = ({
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
 
-const ListSupplier: React.FC<ListSupplierProps> = ({ data }) => {
+const ListSupplier: React.FC<ListSupplierProps> = ({ token }) => {
   const router = useRouter()
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState<string>('')
+  const [data, setData] = useState<Supplier[]>([])
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [menuRowData, setMenuRowData] = useState<Supplier | null>(null)
+
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/supplier/supplier-list?status=active`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const res = await response.json()
+        console.log('res: ', res)
+
+        const mapped: Supplier[] = res?.data?.map((item: any) => ({
+          id: item.id,
+          supplierName: item.supplierName,
+          supplierCode: item.supplierCode,
+          email: item.email,
+          phone: item.phoneNo,
+          address: item.address,
+
+          brands: item.brandSupplies?.map((b: any) => b.brandName).join(', ') || '',
+
+          paymentTerms: item.paymentTerms,
+
+          bankDetails: `${item.bankName ?? ''} | ${item.accountNo ?? ''} | ${item.ifscCode ?? ''}`,
+
+          country: item.address?.split(',')?.pop()?.trim() ?? '',
+
+          isHidden: false
+        }))
+
+        setData(mapped)
+      } else {
+        console.error('Failed to fetch suppliers:', response.statusText)
+      }
+    } catch (error) {
+      console.error('Error fetching suppliers:', error)
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (!token) return
+    fetchData()
+  }, [fetchData, token])
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, supplier: Supplier) => {
     setAnchorEl(event.currentTarget)
@@ -133,9 +180,29 @@ const ListSupplier: React.FC<ListSupplierProps> = ({ data }) => {
     handleMenuClose()
   }
 
-  const handleRemove = (supplier: Supplier) => {
-    console.log('Remove supplier', supplier.id)
-    toast.info(`Remove Supplier: ${supplier.supplierName}`)
+  const handleRemove = async (supplier: Supplier) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/supplier/delete-supplier?id=${supplier.id}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      const res = await response.json()
+
+      if (response.ok) {
+        toast.success('Supplier deleted successfully')
+        fetchData()
+      } else {
+        toast.error(res?.message || 'Failed to delete supplier')
+      }
+    } catch (error) {
+      console.error('Delete Supplier Error:', error)
+      toast.error('Something went wrong')
+    }
+
     handleMenuClose()
   }
 
@@ -309,7 +376,7 @@ const ListSupplier: React.FC<ListSupplierProps> = ({ data }) => {
                     backgroundColor: COLORS.black,
                     color: '#fff',
                     '&:hover': {
-                      backgroundColor: '#000', // keep black on hover
+                      backgroundColor: '#000',
                       opacity: 0.9
                     }
                   }}
@@ -399,12 +466,12 @@ const ListSupplier: React.FC<ListSupplierProps> = ({ data }) => {
           Remove
         </MenuItem>
 
-        <MenuItem onClick={() => menuRowData && handleToggleHide(menuRowData)}>
+        {/* <MenuItem onClick={() => menuRowData && handleToggleHide(menuRowData)}>
           <ListItemIcon>
             <i className='tabler-eye-off' />
           </ListItemIcon>
           {menuRowData?.isHidden ? 'Unhide' : 'Hide'}
-        </MenuItem>
+        </MenuItem> */}
       </Menu>
     </>
   )

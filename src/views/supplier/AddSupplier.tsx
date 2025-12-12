@@ -25,7 +25,7 @@ interface SupplierFormValues {
   origin: string
   whatsapp: string
   wechat: string
-  brandSupplies: string
+  brandSupplies: number[]
   address: string
 
   owner: string
@@ -41,6 +41,7 @@ interface SupplierFormValues {
   bankName: string
   accountNo: string
   ifsc: string
+  focusCategory: number[]
 
   production: {
     category: string
@@ -51,20 +52,29 @@ interface SupplierFormValues {
 const CreateSupplier = ({ token }: { token: string }) => {
   const router = useRouter()
   const API_URL = process.env.NEXT_PUBLIC_BASE_URL
-
-  const [paymentTermsList, setPaymentTermsList] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
-  const [bankList, setBankList] = useState<any[]>([])
   const [showAddCategory, setShowAddCategory] = useState(false)
-   const [focusCategories, setFocusCategories] = useState<any[]>([])
+  const [focusCategories, setFocusCategories] = useState<any[]>([])
+  const [paymentTerms, setPaymentTerms] = useState<any[]>([])
+  const [brandList, setBrandList] = useState<any[]>([])
+
   const countries = useCountries()
 
+  // useEffect(() => {
+  //   fetchDropdowns()
+  // }, [fetchDropdowns])
+
   useEffect(() => {
-    fetchDropdowns()
-  }, [fetchDropdowns])
+    fetchCategories()
+    fetchBrand()
 
+    setPaymentTerms([
+      { id: 1, name: '30/70' },
+      { id: 2, name: 'LC' },
+      { id: 3, name: 'TT' }
+    ])
+  }, [])
 
-   const fetchCategories = async () => {
+  const fetchCategories = async () => {
     const res = await fetch(`${API_URL}/category/category-list`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -78,7 +88,21 @@ const CreateSupplier = ({ token }: { token: string }) => {
     setFocusCategories(formatted)
   }
 
-  // ---------- FORM SETUP ----------
+  const fetchBrand = async () => {
+    const res = await fetch(`${API_URL}/brand/brand-list`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+
+    const result = await res.json()
+
+    const formatted = (result.data || []).map((p: any) => ({
+      id: p.id,
+      name: p.brandName.trim()
+    }))
+
+    setBrandList(formatted)
+  }
+
   const {
     control,
     handleSubmit,
@@ -92,7 +116,8 @@ const CreateSupplier = ({ token }: { token: string }) => {
       phone: '',
       whatsapp: '',
       wechat: '',
-      brandSupplies: '',
+      brandSupplies: [],
+
       address: '',
 
       owner: '',
@@ -108,6 +133,7 @@ const CreateSupplier = ({ token }: { token: string }) => {
       bankName: '',
       accountNo: '',
       ifsc: '',
+      focusCategory: [],
 
       production: [{ category: '', capacity: '' }]
     }
@@ -118,23 +144,49 @@ const CreateSupplier = ({ token }: { token: string }) => {
     control
   })
 
-  // ---------- SUBMIT ----------
   const onSubmit = async (data: SupplierFormValues) => {
+    const payload = {
+      supplierName: data.supplierName,
+      supplierCode: data.supplierCode,
+      email: data.email,
+      phoneNo: data.phone,
+      whatsappNo: data.whatsapp,
+      wechatId: data.wechat,
+      brandSupplies: data.brandSupplies,
+      address: data.address,
+      ownerName: data.owner,
+      salesManagerName: data.salesManager,
+      inceptionDate: data.inception?.toISOString().split('T')[0],
+      domesticOffices: Number(data.domesticOffices),
+      internationalOffices: Number(data.internationalOffices),
+      turnoverPerMonth: Number(data.turnover),
+      exportProduction: Number(data.exportPercent),
+      paymentTerms: data.paymentTerms,
+      bankName: data.bankName,
+      accountNo: data.accountNo,
+      ifscCode: data.ifsc,
+      productionDetails: data.production.map(p => ({
+        category: p.category,
+        productionCapacity: p.capacity
+      })),
+      isActive: true
+    }
+
     try {
-      const response = await fetch(`${API_URL}/supplier/create`, {
+      const response = await fetch(`${API_URL}/supplier/create-supplier`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
       })
 
       const result = await response.json()
 
       if (response.ok) {
         toast.success('Supplier created successfully!')
-        router.push('/list-supplier')
+        router.push('/supplier/list-supplier')
       } else {
         toast.error(result.message || 'Failed to create supplier')
       }
@@ -291,12 +343,17 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 <Controller
                   name='brandSupplies'
                   control={control}
-                  render={({ field }) => (
-                    <CustomTextField
-                      {...field}
+                  render={({ field: { value, onChange } }) => (
+                    <CustomAutocomplete
+                      multiple
                       fullWidth
-                      label='Brand Supplies'
-                      placeholder='Eg. Autotrag, XR1000...'
+                      options={brandList}
+                      value={brandList.filter(b => value?.includes(b.id))}
+                      onChange={(e, val) => onChange(val.map(v => v.id))}
+                      getOptionLabel={o => o?.name || ''}
+                      renderInput={params => (
+                        <CustomTextField {...params} label='Brand Supplies' placeholder='Select brands' />
+                      )}
                     />
                   )}
                 />
@@ -472,10 +529,11 @@ const CreateSupplier = ({ token }: { token: string }) => {
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <CustomAutocomplete
-                      options={paymentTermsList}
+                      options={paymentTerms}
                       fullWidth
-                      value={paymentTermsList.find(i => i === value) || null}
-                      onChange={(e, val) => onChange(val)}
+                      value={paymentTerms.find(i => i.name === value) || null}
+                      onChange={(e, val) => onChange(val?.name)}
+                      getOptionLabel={o => o?.name || ''}
                       renderInput={params => (
                         <CustomTextField {...params} label='Payment Terms' placeholder='Select payment terms' />
                       )}
@@ -489,16 +547,8 @@ const CreateSupplier = ({ token }: { token: string }) => {
                 <Controller
                   name='bankName'
                   control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <CustomAutocomplete
-                      options={bankList}
-                      fullWidth
-                      value={bankList.find(i => i === value) || null}
-                      onChange={(e, val) => onChange(val)}
-                      renderInput={params => (
-                        <CustomTextField {...params} label='Bank Detail' placeholder='Select a bank' />
-                      )}
-                    />
+                  render={({ field }) => (
+                    <CustomTextField {...field} fullWidth label='Bank Detail' placeholder='Enter bank name' />
                   )}
                 />
               </Grid>
@@ -549,18 +599,35 @@ const CreateSupplier = ({ token }: { token: string }) => {
               <div className='flex items-center gap-4'>
                 {/* Category */}
                 <div className='flex-1'>
+                  {/* <Controller
+                    name='focusCategory'
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <CustomAutocomplete
+                        multiple
+                        fullWidth
+                        options={focusCategories}
+                        value={focusCategories.filter(i => value.includes(i.id))}
+                        onChange={(e, val) => onChange(val.map(i => i.id))}
+                        getOptionLabel={o => o?.name || ''}
+                        renderInput={params => (
+                          <CustomTextField {...params} label='Focus Category' placeholder='Select focus category' />
+                        )}
+                      />
+                    )}
+                  /> */}
                   <Controller
                     name={`production.${index}.category`}
                     control={control}
-                    rules={{ required: 'Category required' }}
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field }) => (
                       <CustomAutocomplete
                         fullWidth
-                        options={categories}
-                        value={categories.find(c => c === value) || null}
-                        onChange={(e, val) => onChange(val)}
+                        options={focusCategories}
+                        value={focusCategories.find(i => i.id === field.value) || null}
+                        onChange={(e, val) => field.onChange(val?.id)}
+                        getOptionLabel={o => o?.name || ''}
                         renderInput={params => (
-                          <CustomTextField {...params} label='Category*' placeholder='Select category' />
+                          <CustomTextField {...params} label='Category' placeholder='Select category' />
                         )}
                       />
                     )}

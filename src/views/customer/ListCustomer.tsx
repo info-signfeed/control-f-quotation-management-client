@@ -1,69 +1,62 @@
 'use client'
 
-// React Imports
-import { useEffect, useMemo, useState } from 'react'
-
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
-// MUI Imports
 import Card from '@mui/material/Card'
 import TablePagination from '@mui/material/TablePagination'
-import type { TextFieldProps } from '@mui/material/TextField'
-import { Button, Checkbox, Grid, IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material'
+import {
+  Button,
+  Checkbox,
+  Grid,
+  IconButton,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  TextFieldProps,
+  Typography
+} from '@mui/material'
 
-// Third-party Imports
 import classnames from 'classnames'
-
-import type { ColumnDef, ColumnFiltersState, FilterFn } from '@tanstack/react-table'
-
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
-  getFacetedMinMaxValues,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
+  getPaginationRowModel,
   useReactTable
 } from '@tanstack/react-table'
 
+import type { ColumnDef, ColumnFiltersState, FilterFn } from '@tanstack/react-table'
 import { rankItem } from '@tanstack/match-sorter-utils'
-
-// Utils
 import { toast } from 'react-toastify'
 
-// Component Imports
 import CustomTextField from '@core/components/mui/TextField'
 import TablePaginationComponent from '../../components/TablePaginationComponent'
-
-// Icon Imports
 import ChevronRight from '@menu/svg/ChevronRight'
-
-// Style Imports
 import styles from '@core/styles/table.module.css'
 import { COLORS } from '@/utils/colors'
 
-// ---------- Types ----------
+// ---------------- Types ----------------
 
 export interface Customer {
-  id: string | number
+  id: number
   customerName: string
   customerCode: string
   country: string
   city: string
-  Address: string
+  address: string
   email: string
   phone: string
   isHidden?: boolean
 }
 
 interface ListCustomerProps {
-  data: Customer[]
+  token: string
 }
 
-// ---------- Helpers ----------
+// ---------------- Helpers ----------------
 
 const columnHelper = createColumnHelper<Customer>()
 
@@ -71,14 +64,10 @@ const fuzzyFilter: FilterFn<Customer> = (row, columnId, value) => {
   const search = String(value ?? '')
     .toLowerCase()
     .trim()
-
   const cellValue = String(row.getValue(columnId) ?? '').toLowerCase()
-  const itemRank = rankItem(cellValue, search)
-
-  return itemRank.passed
+  return rankItem(cellValue, search).passed
 }
 
-// Debounced input
 const DebouncedInput = ({
   value: initialValue,
   onChange,
@@ -91,29 +80,78 @@ const DebouncedInput = ({
 } & TextFieldProps) => {
   const [value, setValue] = useState(initialValue)
 
-  useEffect(() => setValue(initialValue), [initialValue])
+  useEffect(() => {
+    setValue(initialValue)
+  }, [initialValue])
 
   useEffect(() => {
-    const timeout = setTimeout(() => onChange(value), debounce)
+    const timeout = setTimeout(() => {
+      onChange(value)
+    }, debounce)
 
     return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
 
-const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
+// ---------------- COMPONENT ----------------
+
+const ListCustomer: React.FC<ListCustomerProps> = ({ token }) => {
   const router = useRouter()
 
+  const [data, setData] = useState<Customer[]>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState<string>('')
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [menuRowData, setMenuRowData] = useState<Customer | null>(null)
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, customer: Customer) => {
+  // ------------ Fetch Data ------------
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customer/customer-list`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) return console.error('Failed to fetch customer list')
+
+      const json = await response.json()
+
+      const mapped: Customer[] = json.data.map((item: any) => ({
+        id: item.id,
+        customerName: item.customerName,
+        customerCode: item.customerCode,
+        email: item.email,
+        phone: item.phoneNo,
+        country: item.country,
+
+        // Extract city from address
+        city: item.address?.split(',')?.slice(-2, -1)[0]?.trim() ?? '',
+
+        address: item.address,
+        isHidden: false
+      }))
+
+      setData(mapped)
+    } catch (error) {
+      console.error('Error loading customers:', error)
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (token) fetchData()
+  }, [fetchData])
+
+  // ---------- Action Handlers ----------
+  const handleMenuOpen = (event: any, row: Customer) => {
     setAnchorEl(event.currentTarget)
-    setMenuRowData(customer)
+    setMenuRowData(row)
   }
 
   const handleMenuClose = () => {
@@ -126,17 +164,43 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
     handleMenuClose()
   }
 
-  const handleRemove = (customer: Customer) => {
-    console.log('Remove Customer', customer.id)
-    toast.info(`Remove Customer: ${customer.customerName}`)
+
+  const handleRemove = async (customer: Customer) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/customer/delete-customer?id=${customer.id}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    const res = await response.json();
+
+    if (response.ok) {
+      toast.success("Customer deleted successfully");
+      fetchData();
+    } else {
+      toast.error(res?.message || "Failed to delete customer");
+    }
+  } catch (error) {
+    console.error("Delete Customer Error:", error);
+    toast.error("Something went wrong");
+  }
+
+  handleMenuClose();
+};
+
+
+  const handleToggleHide = (customer: Customer) => {
+    toast.info(`${customer.isHidden ? 'Unhide' : 'Hide'}: ${customer.customerName}`)
     handleMenuClose()
   }
 
-  const handleToggleHide = (customer: Customer) => {
-    console.log('Toggle hide customer', customer.id)
-    toast.info(`${customer.isHidden ? 'Unhide' : 'Hide'} Customer: ${customer.customerName}`)
-    handleMenuClose()
-  }
+  // ---------------- Columns ----------------
 
   const columns = useMemo<ColumnDef<Customer, any>[]>(
     () => [
@@ -149,64 +213,48 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
             onChange={table.getToggleAllRowsSelectedHandler()}
           />
         ),
-        cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onChange={row.getToggleSelectedHandler()} />,
-        enableSorting: false,
-        enableColumnFilter: false
+        cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onChange={row.getToggleSelectedHandler()} />
       },
 
       columnHelper.accessor('customerName', {
         header: 'Customer Name',
-        cell: info => <span className='font-medium'>{info.getValue()}</span>,
-        enableColumnFilter: false
+        cell: info => <span className='font-medium'>{info.getValue()}</span>
       }),
 
       columnHelper.accessor('customerCode', {
         header: 'Customer Code',
-        cell: info => <span className='font-medium'>{info.getValue()}</span>,
-        enableColumnFilter: false
+        cell: info => <span className='font-medium'>{info.getValue()}</span>
       }),
 
       columnHelper.accessor('email', {
         header: 'Email',
-        cell: info => <span className='font-medium'>{info.getValue()}</span>,
-        enableColumnFilter: false
+        cell: info => <span className='font-medium'>{info.getValue()}</span>
       }),
 
       columnHelper.accessor('phone', {
         header: 'Phone',
-        cell: info => <span className='font-medium'>{info.getValue()}</span>,
-        enableColumnFilter: false
+        cell: info => <span className='font-medium'>{info.getValue()}</span>
       }),
 
       columnHelper.accessor('country', {
         header: 'Country',
-        cell: info => <span className='font-medium'>{info.getValue()}</span>,
-        enableColumnFilter: false
+        cell: info => <span className='font-medium'>{info.getValue()}</span>
       }),
 
       columnHelper.accessor('city', {
         header: 'City',
-        cell: info => <span className='font-medium'>{info.getValue()}</span>,
-        enableColumnFilter: false
+        cell: info => <span className='font-medium'>{info.getValue()}</span>
       }),
 
-      columnHelper.accessor('Address', {
+      columnHelper.accessor('address', {
         header: 'Address',
-        cell: info => <span className='font-medium'>{info.getValue()}</span>,
-        enableColumnFilter: false
+        cell: info => <span className='font-medium'>{info.getValue()}</span>
       }),
 
       columnHelper.accessor('id', {
         header: 'Action',
-        enableSorting: false,
-        enableColumnFilter: false,
         cell: ({ row }) => (
-          <IconButton
-            size='small'
-            onClick={e => handleMenuOpen(e, row.original)}
-            aria-label='Actions'
-            sx={{ color: '#232F6F' }}
-          >
+          <IconButton onClick={e => handleMenuOpen(e, row.original)}>
             <i className='tabler-dots-vertical' />
           </IconButton>
         )
@@ -218,31 +266,18 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
   const table = useReactTable({
     data,
     columns,
-    filterFns: { fuzzy: fuzzyFilter },
-    state: { columnFilters, globalFilter },
-    onColumnFiltersChange: setColumnFilters,
+    state: { globalFilter, columnFilters },
     onGlobalFilterChange: setGlobalFilter,
+    onColumnFiltersChange: setColumnFilters,
+    filterFns: { fuzzy: fuzzyFilter },
     globalFilterFn: fuzzyFilter,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues()
+    getPaginationRowModel: getPaginationRowModel()
   })
 
-  const selectedRows = table.getSelectedRowModel().rows.map(row => row.original)
-
-  const handleExportCustomers = (customers: Customer[]) => {
-    if (!customers.length) return toast.error('No customer data available')
-    console.log('Export customers', customers)
-    toast.success('Customer report exported')
-  }
-
-  const handleImportCustomers = () => {
-    toast.info('Import Customer clicked')
-  }
+  const selectedRows = table.getSelectedRowModel().rows.map(r => r.original)
 
   return (
     <>
@@ -260,7 +295,7 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
                 <DebouncedInput
                   value={globalFilter ?? ''}
                   onChange={value => setGlobalFilter(String(value))}
-                  placeholder='Search Customers...'
+                  placeholder='Search Brands...'
                   className='w-full'
                 />
               </Grid>
@@ -269,12 +304,12 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
                 <Button
                   variant='outlined'
                   startIcon={<i className='tabler-download' style={{ transform: 'rotate(180deg)' }} />}
-                  onClick={() => handleExportCustomers(selectedRows.length ? selectedRows : data)}
+                  // onClick={() => handleExportBrands(selectedRows.length ? selectedRows : data)}
                 >
                   Export
                 </Button>
 
-                <Button variant='outlined' startIcon={<i className='tabler-upload' />} onClick={handleImportCustomers}>
+                <Button variant='outlined' startIcon={<i className='tabler-upload' />}>
                   Import
                 </Button>
 
@@ -286,7 +321,7 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
                     backgroundColor: COLORS.black,
                     color: '#fff',
                     '&:hover': {
-                      backgroundColor: '#000', // keep black on hover
+                      backgroundColor: '#000',
                       opacity: 0.9
                     }
                   }}
@@ -298,32 +333,15 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
           </Grid>
         </Card>
 
+        {/* --- TABLE --- */}
         <Card variant='outlined'>
           <div className='overflow-x-auto'>
             <table className={styles.table}>
               <thead>
-                {table.getHeaderGroups().map(headerGroup => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map(header => (
-                      <th key={header.id}>
-                        {!header.isPlaceholder && (
-                          <>
-                            <div
-                              className={classnames({
-                                'flex items-center': header.column.getIsSorted(),
-                                'cursor-pointer select-none': header.column.getCanSort()
-                              })}
-                              onClick={header.column.getToggleSortingHandler()}
-                            >
-                              {flexRender(header.column.columnDef.header, header.getContext())}
-                              {{
-                                asc: <ChevronRight fontSize='1.25rem' className='-rotate-90' />,
-                                desc: <ChevronRight fontSize='1.25rem' className='rotate-90' />
-                              }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
-                            </div>
-                          </>
-                        )}
-                      </th>
+                {table.getHeaderGroups().map(hg => (
+                  <tr key={hg.id}>
+                    {hg.headers.map(header => (
+                      <th key={header.id}>{flexRender(header.column.columnDef.header, header.getContext())}</th>
                     ))}
                   </tr>
                 ))}
@@ -333,7 +351,7 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
                 {table.getFilteredRowModel().rows.length === 0 ? (
                   <tr>
                     <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                      No data available
+                      No Data Available
                     </td>
                   </tr>
                 ) : (
@@ -359,6 +377,7 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
         </Card>
       </div>
 
+      {/* --- MENU --- */}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItem onClick={() => menuRowData && handleEdit(menuRowData)}>
           <ListItemIcon>
@@ -374,12 +393,12 @@ const ListCustomer: React.FC<ListCustomerProps> = ({ data }) => {
           Remove
         </MenuItem>
 
-        <MenuItem onClick={() => menuRowData && handleToggleHide(menuRowData)}>
+        {/* <MenuItem onClick={() => menuRowData && handleToggleHide(menuRowData)}>
           <ListItemIcon>
             <i className='tabler-eye-off' />
           </ListItemIcon>
           {menuRowData?.isHidden ? 'Unhide' : 'Hide'}
-        </MenuItem>
+        </MenuItem> */}
       </Menu>
     </>
   )

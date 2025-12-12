@@ -270,7 +270,7 @@ const CreateBrand: React.FC<CreateBrandProps> = ({ token }) => {
                       fullWidth
                       options={segments}
                       value={segments.find(i => i.name === value) || null}
-                      onChange={(e, val) => onChange(val?.name || '')} // send string!
+                      onChange={(e, val) => onChange(val?.name || '')}
                       getOptionLabel={o => o?.name || ''}
                       renderInput={params => (
                         <CustomTextField {...params} label='Segment' placeholder='Select segment' />

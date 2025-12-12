@@ -12,8 +12,7 @@ const ListCustomerPage = () => {
   return (
     <Grid container>
       <Grid item xs={12}>
-        {/* <Solved abhi={token} /> */}
-        <ListCustomer data={[]} />
+        <ListCustomer token={token!}  data={[]} />
       </Grid>
     </Grid>
   )
