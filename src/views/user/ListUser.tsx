@@ -61,12 +61,17 @@ import Image from 'next/image'
 import { User } from '@/types/userType'
 import { toast } from 'react-toastify'
 import { COLORS } from '@/utils/colors'
+import DeleteConfirmModal from '@/components/model/DeleteConfirmModal'
+import { deleteEmployee } from '@/services/employee'
+import { Employee } from '@/types/employee'
+import { EmployeesClient } from '@/services/employees.client'
 // import { exportToExcel } from '@/utils/exportToExcel'
 // import StationNameMenuCell from '@/components/StationNameMenuCell'
 
 interface ListUserProps {
   // data: User[]
   token: string
+  data: Employee[]
 }
 
 // Column Definitions
@@ -162,17 +167,16 @@ const MaxLengthCell = ({ value, maxLength }: { value: string; maxLength: number 
   return <span title={value}>{value.length > maxLength ? `${value.substring(0, maxLength)}...` : value}</span>
 }
 
-const ListUser: React.FC<ListUserProps> = ({ token }) => {
+const ListUser: React.FC<ListUserProps> = ({ token, data }) => {
   const router = useRouter()
-  // States
-  const [data, setData] = useState<User[]>([])
-  console.log('data: ', data)
+
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
 
   // Action menu states
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [menuRowData, setMenuRowData] = useState<User | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   // Action handlers
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, user: User) => {
@@ -190,31 +194,57 @@ const ListUser: React.FC<ListUserProps> = ({ token }) => {
     handleMenuClose()
   }
 
-  const fetchData = useCallback(async () => {
+  const handleDelete = async (user: User) => {
+    console.log('user: ', user)
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/employee/employee-list`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/employee/delete-employee?id=${user.id}`, {
+        method: 'GET',
         headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       })
-
-      if (response.ok) {
-        const res = await response.json()
-        console.log('res: ', res)
-        setData(res?.data)
+      const result = await res.json()
+      if (result.status === 200) {
+        toast.success('User deleted successfully')
+        router.refresh()
+        // setData(prevData => prevData.filter(u => u.id !== user.id))
       } else {
-        console.error('Failed to fetch roles:', response.statusText)
+        toast.error('Failed to delete user')
       }
     } catch (error) {
-      console.error('Error fetching user roles:', error)
+      console.error('Error deleting user:', error)
+      toast.error('An error occurred while deleting the user')
+    } finally {
+      setIsDeleteDialogOpen(false)
     }
-  }, [token])
+  }
 
-  useEffect(() => {
-    if (!token) return
-    fetchData()
-  }, [fetchData, token])
+  // const fetchData = useCallback(async () => {
+  //   try {
+  //     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/employee/employee-list`, {
+  //       headers: {
+  //         Accept: 'application/json',
+  //         Authorization: `Bearer ${token}`
+  //       }
+  //     })
+
+  //     if (response.ok) {
+  //       const res = await response.json()
+  //       console.log('res: ', res)
+  //       setData(res?.data)
+  //     } else {
+  //       console.error('Failed to fetch roles:', response.statusText)
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching user roles:', error)
+  //   }
+  // }, [token])
+
+  // useEffect(() => {
+  //   if (!token) return
+  //   fetchData()
+  // }, [fetchData, token])
   // Hooks
   const columns = useMemo<ColumnDef<User, any>[]>(
     () => [
@@ -482,6 +512,16 @@ const ListUser: React.FC<ListUserProps> = ({ token }) => {
         </Card>
       </div>
 
+      {/* Delete Confirmation Modal */}
+
+      <DeleteConfirmModal
+        open={isDeleteDialogOpen}
+        title='Delete Sub Category'
+        message='Are you sure you want to delete the Sub Category?'
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        onConfirm={() => handleDelete(menuRowData!)}
+      />
+
       {/* Action Menu */}
       <Menu
         anchorEl={anchorEl}
@@ -501,6 +541,17 @@ const ListUser: React.FC<ListUserProps> = ({ token }) => {
             <i className='tabler-edit' />
           </ListItemIcon>
           Edit User
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setIsDeleteDialogOpen(true)
+            setAnchorEl(null)
+          }}
+        >
+          <ListItemIcon>
+            <i className='tabler-trash' />
+          </ListItemIcon>
+          Delete User
         </MenuItem>
       </Menu>
     </>
